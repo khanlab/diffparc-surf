@@ -191,11 +191,36 @@ rule all_preprocdwi:
             **input_zip_lists["dwi"]
         ),
 
+rule all_tables:
+    input:
+        dlabel=expand(expand(bids(
+            root=root,
+            datatype="surf",
+            from_="{template}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="surfmetrics.tsv",
+            **subj_wildcards,
+        ),   
+                template=config["template"],
+                hemi=config["hemispheres"],
+                seed=config["seeds"].keys(),
+                targets=config["targets"].keys(),
+                seedspervertex=config["seeds_per_vertex"],
+                metric=config["surface_metrics"],
+                allow_missing=True,
+            ),
+            zip,
+            **input_zip_lists["dwi"])
+    
+
 
 rule all:
     input:
         #        rules.all_diffparc.input,
-        rules.all_surfmorph.input,
+#        rules.all_surfmorph.input,
+        rules.all_tables.input,
     default_target: True
 
 
@@ -212,3 +237,5 @@ include: "rules/motioncorr.smk"
 include: "rules/surfmorph.smk"
 include: "rules/surftrack.smk"
 include: "rules/synthseg.smk"
+include: "rules/tables.smk"
+
