@@ -1,15 +1,17 @@
 rule write_surf_metrics_tsv:
     input:
-        dscalars = expand(bids(
+        dscalars=expand(
+            bids(
                 root=root,
                 from_="{template}",
                 datatype="surf",
                 label="{seed}",
                 suffix="{metric}.dscalar.nii",
                 **subj_wildcards,
-                ),
-            metric=config['surface_metrics'], allow_missing=True),
-
+            ),
+            metric=config["surface_metrics"],
+            allow_missing=True,
+        ),
         dlabel=bids(
             root=root,
             datatype="surf",
@@ -19,8 +21,10 @@ rule write_surf_metrics_tsv:
             suffix="maxprob.dlabel.nii",
             **subj_wildcards,
         ),
+    params:
+        metrics=config["surface_metrics"],
     output:
-        dlabel=bids(
+        tsv=bids(
             root=root,
             datatype="surf",
             from_="{template}",
@@ -29,10 +33,10 @@ rule write_surf_metrics_tsv:
             seedspervertex="{seedspervertex}",
             suffix="surfmetrics.tsv",
             **subj_wildcards,
-        ),       
-    container: config['singularity']['pythondeps']
-    group: 'subj'
+        ),
+    container:
+        config["singularity"]["pythondeps"]
+    group:
+        "subj"
     script:
-        '../scripts/write_surf_metrics_tsv.py'
-
-
+        "../scripts/write_surf_metrics_tsv.py"
