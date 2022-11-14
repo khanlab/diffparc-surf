@@ -504,5 +504,7 @@ rule calc_surface_area_metric:
             label="{seed}",
             suffix="surfarea.shape.gii"
         ),
+    container:
+        config["singularity"]["autotop"]
     shell:
         "wb_command -surface-vertex-areas {input} {output}"
