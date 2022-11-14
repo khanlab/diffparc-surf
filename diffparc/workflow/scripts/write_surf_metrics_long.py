@@ -2,7 +2,7 @@ import pandas as pd
 import nibabel as nib
 import numpy as np
 
-# this loads the cifti dlabel and dscalar files and creates a tidy table
+# this loads the cifti dlabel and dscalar files and creates a long table
 
 # axis 0 has the dense data (ie scalars or labels),
 #  and axis 1 the different surfaces (left striatum, right striatum;
@@ -44,9 +44,15 @@ for dscalar_nii, metric in zip(snakemake.input.dscalars, snakemake.params.metric
         # loop over labels (parcels)
         for labelnum, (labelname, rgba) in label_dict.items():
 
-            value = reduce_func_dict[metric](
-                scalar[label == labelnum]
-            )  # mean for inout, sum for surfarea
+            if np.any(label == labelnum):
+                value = reduce_func_dict[metric](
+                    scalar[label == labelnum]
+                )  # mean for inout, sum for surfarea
+            else:
+                print(
+                    f"warning: {labelname} is empty, subject={snakemake.wildcards.subject}, setting to 0"
+                )
+                value = 0
 
             row = dict()
 
@@ -66,4 +72,4 @@ for dscalar_nii, metric in zip(snakemake.input.dscalars, snakemake.params.metric
             df = pd.concat((df, pd.DataFrame.from_dict(row)), ignore_index=True)
 
 # write to output file
-df.to_csv(snakemake.output.tsv, sep="\t")
+df.to_csv(snakemake.output.csv, index=False)

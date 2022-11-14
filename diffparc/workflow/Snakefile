@@ -194,16 +194,17 @@ rule all_preprocdwi:
 
 rule all_tables:
     input:
-        tsv=expand(
+        csv=expand(
             expand(
                 bids(
                     root=root,
-                    datatype="surf",
+                    datatype="tabular",
                     from_="{template}",
                     desc="{targets}",
                     label="{seed}",
                     seedspervertex="{seedspervertex}",
-                    suffix="surfmetrics.tsv",
+                    form="{form}",
+                    suffix="surfmetrics.csv",
                     **subj_wildcards,
                 ),
                 template=config["template"],
@@ -211,6 +212,7 @@ rule all_tables:
                 seed=config["seeds"].keys(),
                 targets=config["targets"].keys(),
                 seedspervertex=config["seeds_per_vertex"],
+                form=["wide", "long"],
                 allow_missing=True,
             ),
             zip,
