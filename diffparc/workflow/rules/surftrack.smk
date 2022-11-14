@@ -175,7 +175,7 @@ def get_dseg_targets(wildcards):
                 **subj_wildcards,
                 space="individual",
                 desc="{targets}",
-                from_="synthseg",
+                from_="synthsegnearest",
                 datatype="anat",
                 suffix="dseg.mif"
             ),

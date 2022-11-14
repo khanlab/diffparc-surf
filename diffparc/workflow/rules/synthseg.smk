@@ -171,3 +171,82 @@ rule synthseg_to_targets:
         ),
     shell:
         "{params.cmd}"
+
+
+rule warp_template_target_dseg:
+    input:
+        dseg=lambda wildcards: os.path.join(
+            workflow.basedir,
+            "..",
+            config["targets"][wildcards.targets]["template_dseg"],
+        ),
+        ref=bids(root=root, datatype="anat", **subj_wildcards, suffix="T1w.nii.gz"),
+        xfm=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            suffix="xfm.txt",
+            from_="subject",
+            to="{template}",
+            desc="affine",
+            type_="itk"
+        ),
+    output:
+        dseg=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            suffix="dseg.nii.gz",
+            from_="{template}",
+            targets="{targets}",
+            reg="affine",
+        ),
+    container:
+        config["singularity"]["ants"]
+    group:
+        "subj"
+    shell:
+        "antsApplyTransforms -d 3 --interpolation NearestNeighbor -i {input.dseg} -o {output.dseg} -r {input.ref} "
+        " -t [{input.xfm},1] "
+
+
+# to map template labels to synthseg cortex, we can
+# get the cortical GM map from synthseg (>=1000), then
+# relabel according to nearest template label
+
+# to do this efficiently, we can map the background voxels from
+# the template label to the nearest foreground voxel first,
+# then, just mask that..
+
+
+rule nearest_label_synthseg_targets:
+    input:
+        synthseg_dseg=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            desc="synthseg",
+            suffix="dseg.nii.gz"
+        ),
+        template_dseg=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            suffix="dseg.nii.gz",
+            from_=config["template"],
+            targets="{targets}",
+            reg="affine",
+        ),
+    output:
+        dseg=bids(
+            root=root,
+            **subj_wildcards,
+            space="individual",
+            desc="{targets}",
+            from_="synthsegnearest",
+            datatype="anat",
+            suffix="dseg.nii.gz"
+        ),
+    shell:
+        "c3d {input.template_dseg} -replace 0 inf -split -foreach  -sdt -scale -1 -endfor -merge -popas LBL "
+        " {input.synthseg_dseg} -threshold 1000 inf 1 0 -push LBL -multiply -o {output.dseg}"
