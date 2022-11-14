@@ -496,5 +496,7 @@ rule merge_dscalar_metrics_over_subjects:
         ),
     container:
         config["singularity"]["autotop"]
+    group:
+        "group"
     shell:
         "wb_command -cifti-merge {output} {params.merge_opt}"

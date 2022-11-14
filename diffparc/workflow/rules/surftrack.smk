@@ -504,6 +504,8 @@ rule calc_surface_area_metric:
             label="{seed}",
             suffix="surfarea.shape.gii"
         ),
+    group:
+        "subj"
     container:
         config["singularity"]["autotop"]
     shell:

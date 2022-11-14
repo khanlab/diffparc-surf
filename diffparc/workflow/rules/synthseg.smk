@@ -18,6 +18,8 @@ rule run_synthseg:
     container:
         config["singularity"]["synthseg"]
     threads: 8
+    group:
+        "subj"
     shell:
         # currently only have models for v1 in the container (onedrive link wasn't working!)
         "python /SynthSeg/scripts/commands/SynthSeg_predict.py --i {input} --o {output} --parc --cpu --threads {threads}"
@@ -48,6 +50,10 @@ rule extract_synthseg_label:
             suffix="probseg.nii.gz",
             **subj_wildcards,
         ),
+    container:
+        config["singularity"]["itksnap"]
+    group:
+        "subj"
     shell:
         "c3d {input} -retain-labels {params.labels} -binarize -smooth {params.smoothing} -o {output}"
 
@@ -169,6 +175,10 @@ rule synthseg_to_targets:
             datatype="anat",
             suffix="dseg.nii.gz"
         ),
+    container:
+        config["singularity"]["itksnap"]
+    group:
+        "subj"
     shell:
         "{params.cmd}"
 
@@ -247,6 +257,10 @@ rule nearest_label_synthseg_targets:
             datatype="anat",
             suffix="dseg.nii.gz"
         ),
+    container:
+        config["singularity"]["itksnap"]
+    group:
+        "subj"
     shell:
         "c3d {input.template_dseg} -replace 0 inf -split -foreach  -sdt -scale -1 -endfor -merge -popas LBL "
         " {input.synthseg_dseg} -threshold 1000 inf 1 0 -push LBL -multiply -o {output.dseg}"
