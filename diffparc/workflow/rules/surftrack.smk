@@ -194,6 +194,35 @@ def get_dseg_targets(wildcards):
             ),
         )
 
+def get_dseg_targets_nii(wildcards):
+
+    if config["use_synthseg"]:
+        return (
+            bids(
+                root=root,
+                **subj_wildcards,
+                space="individual",
+                desc="{targets}",
+                from_="synthsegnearest",
+                datatype="anat",
+                suffix="dseg.nii.gz"
+            ),
+        )
+
+    else:
+        return (
+            bids(
+                root=root,
+                **subj_wildcards,
+                space="individual",
+                desc="{targets}",
+                from_=config["template"],
+                datatype="anat",
+                suffix="dseg.nii.gz"
+            ),
+        )
+
+
 
 rule connectivity_from_vertices:
     # Tournier, J.-D.; Calamante, F. & Connelly, A. Improved probabilistic streamlines tractography by 2nd order integration over fibre orientation distributions. Proceedings of the International Society for Magnetic Resonance in Medicine, 2010, 1670
@@ -409,6 +438,7 @@ rule create_cifti_conn_dscalar_maxprob:
         "wb_command -cifti-reduce {input} INDEXMAX {output}"
 
 
+
 # need to then convert that into a label, then can use parcellate
 rule create_cifti_maxprob_dlabel:
     input:
@@ -442,6 +472,48 @@ rule create_cifti_maxprob_dlabel:
         config["singularity"]["autotop"]
     shell:
         "wb_command -cifti-label-import {input.cifti_dscalar} {input.label_list_txt} {output.cifti_dlabel}"
+
+rule split_cifti_maxprob_dlabel:
+    """split the cifti dlabel into metric gii files"""
+    input:
+        cifti_dlabel=bids(
+            root=root,
+            datatype="surf",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="maxprob.dlabel.nii",
+            **subj_wildcards,
+        ),
+    output:
+        left_label_gii=bids(
+            root=root,
+            datatype="surf",
+            hemi="L",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="maxprob.label.gii",
+            **subj_wildcards,
+        ),
+        right_label_gii=bids(
+            root=root,
+            datatype="surf",
+            hemi="R",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="maxprob.label.gii",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["autotop"]
+    shell:
+        "wb_command -cifti-separate {input.cifti_dlabel} COLUMN "
+        " -label CORTEX_LEFT {output.left_label_gii} " 
+        " -label CORTEX_RIGHT {output.right_label_gii}"
 
 
 rule parcellate_cifti_metric:
@@ -510,3 +582,166 @@ rule calc_surface_area_metric:
         config["singularity"]["autotop"]
     shell:
         "wb_command -surface-vertex-areas {input} {output}"
+
+
+
+rule create_parc_tcklist:
+    input:
+        label_gii=bids(
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="maxprob.label.gii",
+            **subj_wildcards,
+        ),
+    params:
+        tck_filename=lambda wildcards: bids(
+            root=config["tmp_dir"],
+            datatype="surf",
+            hemi="{hemi}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="vertextracts/vertex_{{index:04d}}.tck",  #index is kept as a wildcard, expanded in script
+            **subj_wildcards,
+        ).format(**wildcards),
+        label_num = lambda wildcards: config['targets'][wildcards.targets]['labels'].index(wildcards.parc)+1 #start at 1
+    output:
+        tcklist=temp(bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                parc="{parc}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                suffix="tcklist.txt",
+                **subj_wildcards,
+            ))
+    group:
+        "subj"
+    container:
+        config["singularity"]["pythondeps"]
+    script:
+        "../scripts/create_parc_tcklist.py"
+
+
+rule extract_target_mask:
+    input:
+        dseg=get_dseg_targets_nii
+    params:
+        label_num = lambda wildcards: config['targets'][wildcards.targets]['labels'].index(wildcards.parc)+1 #start at 1
+    output:
+        mask=temp(bids(
+                root=root,
+                **subj_wildcards,
+                space="individual",
+                desc="{targets}",
+                parc="{parc}",
+                datatype="anat",
+                suffix="mask.nii.gz"
+            )),
+    container:
+        config["singularity"]["itksnap"]
+    group:
+        "subj"
+    shell:
+        'c3d {input.dseg} -retain-labels {params.label_num} -binarize -o {output.mask}'
+        
+
+rule create_parc_bundle:
+    input:
+        tcklist=bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                parc="{parc}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                suffix="tcklist.txt",
+                **subj_wildcards,
+            ),
+        tck_dir=bids(
+            root=config["tmp_dir"],
+            datatype="surf",
+            hemi="{hemi}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="vertextracts",
+            **subj_wildcards,
+        ),
+        mask=bids(
+                root=root,
+                **subj_wildcards,
+                space="individual",
+                desc="{targets}",
+                parc="{parc}",
+                datatype="anat",
+                suffix="mask.nii.gz"
+            ),
+
+    output:
+        bundle=bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                parc="{parc}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                suffix="bundle.tck",
+                **subj_wildcards,
+            )
+    group:
+        "subj"
+    container:
+        config["singularity"]["diffparc_deps"]
+    shell:
+        "tckedit `cat {input.tcklist}` {output.bundle} -include {input.mask}"
+
+
+
+rule create_parc_tdi:
+    """tract density image for the parcel"""
+    input:
+        bundle=bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                parc="{parc}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                suffix="bundle.tck",
+                **subj_wildcards,
+            ),
+        ref=bids(
+            root=root,
+            suffix="T1w.nii.gz",
+            desc="preproc",
+            datatype="anat",
+            **subj_wildcards
+        ),
+    output:
+        tdi=bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                parc="{parc}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                suffix="tdi.nii.gz",
+                **subj_wildcards,
+            )
+    group:
+        "subj"
+    container:
+        config["singularity"]["diffparc_deps"]
+    shell:
+        "tckmap {input.bundle} {output.tdi} -template {input.ref}"
+
+
