@@ -523,6 +523,8 @@ rule concat_degibbs_dwi:
             zip,
             **snakebids.filter_list(input_zip_lists["dwi"], wildcards)
         ),
+    params:
+        cmd=get_concat_or_cp_cmd,
     output:
         dwi_concat=bids(
             root=root,
@@ -538,7 +540,7 @@ rule concat_degibbs_dwi:
     group:
         "subj"
     shell:
-        "mrcat {input} {output} 2> {log}"
+        "{params.cmd} 2> {log}"
 
 
 rule concat_runs_bvec:
