@@ -194,6 +194,7 @@ def get_dseg_targets(wildcards):
             ),
         )
 
+
 def get_dseg_targets_nii(wildcards):
 
     if config["use_synthseg"]:
@@ -221,7 +222,6 @@ def get_dseg_targets_nii(wildcards):
                 suffix="dseg.nii.gz"
             ),
         )
-
 
 
 rule connectivity_from_vertices:
@@ -438,7 +438,6 @@ rule create_cifti_conn_dscalar_maxprob:
         "wb_command -cifti-reduce {input} INDEXMAX {output}"
 
 
-
 # need to then convert that into a label, then can use parcellate
 rule create_cifti_maxprob_dlabel:
     input:
@@ -472,6 +471,7 @@ rule create_cifti_maxprob_dlabel:
         config["singularity"]["autotop"]
     shell:
         "wb_command -cifti-label-import {input.cifti_dscalar} {input.label_list_txt} {output.cifti_dlabel}"
+
 
 rule split_cifti_maxprob_dlabel:
     """split the cifti dlabel into metric gii files"""
@@ -512,7 +512,7 @@ rule split_cifti_maxprob_dlabel:
         config["singularity"]["autotop"]
     shell:
         "wb_command -cifti-separate {input.cifti_dlabel} COLUMN "
-        " -label CORTEX_LEFT {output.left_label_gii} " 
+        " -label CORTEX_LEFT {output.left_label_gii} "
         " -label CORTEX_RIGHT {output.right_label_gii}"
 
 
@@ -584,6 +584,17 @@ rule calc_surface_area_metric:
         "wb_command -surface-vertex-areas {input} {output}"
 
 
+def get_tck_filename(wildcards):
+    return bids(
+        root=config["tmp_dir"],
+        datatype="surf",
+        hemi="{hemi}",
+        label="{seed}",
+        seedspervertex="{seedspervertex}",
+        suffix="vertextracts/vertex_{{index:04d}}.tck",
+        **subj_wildcards,
+    ).format(**wildcards)
+
 
 rule create_parc_tcklist:
     input:
@@ -598,18 +609,14 @@ rule create_parc_tcklist:
             **subj_wildcards,
         ),
     params:
-        tck_filename=lambda wildcards: bids(
-            root=config["tmp_dir"],
-            datatype="surf",
-            hemi="{hemi}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            suffix="vertextracts/vertex_{{index:04d}}.tck",  #index is kept as a wildcard, expanded in script
-            **subj_wildcards,
-        ).format(**wildcards),
-        label_num = lambda wildcards: config['targets'][wildcards.targets]['labels'].index(wildcards.parc)+1 #start at 1
+        tck_filename=get_tck_filename,
+        label_num=lambda wildcards: config["targets"][wildcards.targets][
+            "labels"
+        ].index(wildcards.parc)
+        + 1,
     output:
-        tcklist=temp(bids(
+        tcklist=temp(
+            bids(
                 root=root,
                 datatype="surf",
                 hemi="{hemi}",
@@ -619,7 +626,8 @@ rule create_parc_tcklist:
                 seedspervertex="{seedspervertex}",
                 suffix="tcklist.txt",
                 **subj_wildcards,
-            ))
+            )
+        ),
     group:
         "subj"
     container:
@@ -630,11 +638,16 @@ rule create_parc_tcklist:
 
 rule extract_target_mask:
     input:
-        dseg=get_dseg_targets_nii
+        dseg=get_dseg_targets_nii,
     params:
-        label_num = lambda wildcards: config['targets'][wildcards.targets]['labels'].index(wildcards.parc)+1 #start at 1
+        label_num=lambda wildcards: config["targets"][wildcards.targets][
+            "labels"
+        ].index(wildcards.parc)
+        + 1,
+        #start at 1
     output:
-        mask=temp(bids(
+        mask=temp(
+            bids(
                 root=root,
                 **subj_wildcards,
                 space="individual",
@@ -642,28 +655,29 @@ rule extract_target_mask:
                 parc="{parc}",
                 datatype="anat",
                 suffix="mask.nii.gz"
-            )),
+            )
+        ),
     container:
         config["singularity"]["itksnap"]
     group:
         "subj"
     shell:
-        'c3d {input.dseg} -retain-labels {params.label_num} -binarize -o {output.mask}'
-        
+        "c3d {input.dseg} -retain-labels {params.label_num} -binarize -o {output.mask}"
+
 
 rule create_parc_bundle:
     input:
         tcklist=bids(
-                root=root,
-                datatype="surf",
-                hemi="{hemi}",
-                desc="{targets}",
-                parc="{parc}",
-                label="{seed}",
-                seedspervertex="{seedspervertex}",
-                suffix="tcklist.txt",
-                **subj_wildcards,
-            ),
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            parc="{parc}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="tcklist.txt",
+            **subj_wildcards,
+        ),
         tck_dir=bids(
             root=config["tmp_dir"],
             datatype="surf",
@@ -674,27 +688,26 @@ rule create_parc_bundle:
             **subj_wildcards,
         ),
         mask=bids(
-                root=root,
-                **subj_wildcards,
-                space="individual",
-                desc="{targets}",
-                parc="{parc}",
-                datatype="anat",
-                suffix="mask.nii.gz"
-            ),
-
+            root=root,
+            **subj_wildcards,
+            space="individual",
+            desc="{targets}",
+            parc="{parc}",
+            datatype="anat",
+            suffix="mask.nii.gz"
+        ),
     output:
         bundle=bids(
-                root=root,
-                datatype="surf",
-                hemi="{hemi}",
-                desc="{targets}",
-                parc="{parc}",
-                label="{seed}",
-                seedspervertex="{seedspervertex}",
-                suffix="bundle.tck",
-                **subj_wildcards,
-            )
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            parc="{parc}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="bundle.tck",
+            **subj_wildcards,
+        ),
     group:
         "subj"
     container:
@@ -703,21 +716,20 @@ rule create_parc_bundle:
         "tckedit `cat {input.tcklist}` {output.bundle} -include {input.mask}"
 
 
-
 rule create_parc_tdi:
     """tract density image for the parcel"""
     input:
         bundle=bids(
-                root=root,
-                datatype="surf",
-                hemi="{hemi}",
-                desc="{targets}",
-                parc="{parc}",
-                label="{seed}",
-                seedspervertex="{seedspervertex}",
-                suffix="bundle.tck",
-                **subj_wildcards,
-            ),
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            parc="{parc}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="bundle.tck",
+            **subj_wildcards,
+        ),
         ref=bids(
             root=root,
             suffix="T1w.nii.gz",
@@ -727,21 +739,19 @@ rule create_parc_tdi:
         ),
     output:
         tdi=bids(
-                root=root,
-                datatype="surf",
-                hemi="{hemi}",
-                desc="{targets}",
-                parc="{parc}",
-                label="{seed}",
-                seedspervertex="{seedspervertex}",
-                suffix="tdi.nii.gz",
-                **subj_wildcards,
-            )
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            parc="{parc}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="tdi.nii.gz",
+            **subj_wildcards,
+        ),
     group:
         "subj"
     container:
         config["singularity"]["diffparc_deps"]
     shell:
         "tckmap {input.bundle} {output.tdi} -template {input.ref}"
-
-
