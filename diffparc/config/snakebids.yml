@@ -90,6 +90,19 @@ parse_args:
           participants can be specified with a space separated list.
     nargs: '+'
 
+
+  --skip_preproc_dwi:
+    help: 'Skip dwi pre-processing. Assumes dwi loaded is pre-processed and already co-registered to the T1w image (default: %(default)s)'
+    action: 'store_true'
+    default: False
+
+
+  --use_eddy:
+    help: 'Enable eddy  (default: %(default)s)'
+    action: 'store_true'
+    default: False
+
+
   --use_topup:
     help: 'Enable topup  (default: %(default)s)'
     action: 'store_true'
@@ -427,5 +440,7 @@ b0_bet_frac: 0.5
 slspec_txt: False
 eddy_no_s2v: True
 
+use_eddy: False
 use_topup: False
 use_synthseg: True
+skip_dwi_preproc: False

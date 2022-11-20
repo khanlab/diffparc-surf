@@ -47,7 +47,7 @@ rule reg_dwi_to_t1:
         avgb0=bids(
             root=root,
             suffix="b0.nii.gz",
-            desc="dwiref",
+            desc="preproc",
             datatype="dwi",
             **subj_wildcards
         ),
@@ -59,7 +59,7 @@ rule reg_dwi_to_t1:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             datatype="dwi",
             **subj_wildcards
         ),
@@ -90,7 +90,7 @@ rule qc_reg_dwi_t1:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             datatype="dwi",
             **subj_wildcards
         ),
@@ -161,7 +161,7 @@ rule convert_xfm_ras2fsl:
         avgb0=bids(
             root=root,
             suffix="b0.nii.gz",
-            desc="dwiref",
+            desc="preproc",
             datatype="dwi",
             **subj_wildcards
         ),
@@ -199,7 +199,7 @@ rule create_cropped_ref:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             datatype="dwi",
             **subj_wildcards
         ),
@@ -208,7 +208,7 @@ rule create_cropped_ref:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             proc="crop",
             datatype="dwi",
             **subj_wildcards
@@ -242,7 +242,7 @@ rule create_cropped_ref_t1_resolution:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             proc="crop",
             datatype="dwi",
             **subj_wildcards
@@ -252,7 +252,7 @@ rule create_cropped_ref_t1_resolution:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             proc="crop",
             res="T1w",
             datatype="dwi",
@@ -270,7 +270,7 @@ rule create_cropped_ref_dwi_resolution:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             proc="crop",
             datatype="dwi",
             **subj_wildcards
@@ -278,7 +278,7 @@ rule create_cropped_ref_dwi_resolution:
         res_txt_orig=bids(
             root=root,
             suffix="b0.resolution_mm.txt",
-            desc="dwiref",
+            desc="preproc",
             datatype="dwi",
             **subj_wildcards
         ),
@@ -287,7 +287,7 @@ rule create_cropped_ref_dwi_resolution:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             proc="crop",
             res="orig",
             datatype="dwi",
@@ -307,7 +307,7 @@ rule create_cropped_ref_custom_resolution:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             proc="crop",
             datatype="dwi",
             **subj_wildcards
@@ -322,7 +322,7 @@ rule create_cropped_ref_custom_resolution:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             proc="crop",
             res="custom",
             datatype="dwi",
@@ -342,7 +342,7 @@ rule resample_dwi_to_t1w:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             proc="crop",
             res=config["resample_dwi"]["resample_scheme"],
             datatype="dwi",
@@ -392,7 +392,7 @@ rule resample_brainmask_to_t1w:
             root=root,
             suffix="avgb0.nii.gz",
             space="T1w",
-            desc="dwiref",
+            desc="preproc",
             proc="crop",
             res=config["resample_dwi"]["resample_scheme"],
             datatype="dwi",

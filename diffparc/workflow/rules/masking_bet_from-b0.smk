@@ -1,16 +1,6 @@
-# input: bids(root='work',suffix='b0.nii.gz',desc='dwiref',datatype='dwi',**config['subj_wildcards'])
-# output: bids(root='work',desc='brain',method='bet_from-b0',suffix='mask.nii.gz',datatype='dwi',**config['subj_wildcards'])
-
-
 rule import_avg_b0:
     input:
-        bids(
-            root=root,
-            suffix="b0.nii.gz",
-            desc="dwiref",
-            datatype="dwi",
-            **subj_wildcards
-        ),
+        get_dwi_ref,
     output:
         bids(
             root=root,

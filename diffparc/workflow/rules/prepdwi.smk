@@ -3,6 +3,7 @@ from snakebids import bids
 
 wildcard_constraints:
     shell="[0-9]+",
+    dir="[a-zA-Z0-9]+",
 
 
 rule import_dwi:
@@ -13,7 +14,13 @@ rule import_dwi:
         ],
     output:
         nii=multiext(
-            bids(root=root, suffix="dwi", datatype="dwi", **input_wildcards["dwi"]),
+            bids(
+                root=root,
+                suffix="dwi",
+                desc="import",
+                datatype="dwi",
+                **input_wildcards["dwi"]
+            ),
             ".nii.gz",
             ".bval",
             ".bvec",
@@ -29,7 +36,13 @@ rule import_dwi:
 rule dwidenoise:
     input:
         multiext(
-            bids(root=root, suffix="dwi", datatype="dwi", **input_wildcards["dwi"]),
+            bids(
+                root=root,
+                suffix="dwi",
+                desc="import",
+                datatype="dwi",
+                **input_wildcards["dwi"]
+            ),
             ".nii.gz",
             ".bvec",
             ".bval",
@@ -70,7 +83,9 @@ def get_degibbs_inputs(wildcards):
     in_dwi_bval = re.sub(".nii.gz", ".bval", input_path["dwi"].format(**wildcards))
     bvals = np.loadtxt(in_dwi_bval)
     if bvals.size < 30:
-        prefix = bids(root=root, suffix="dwi", datatype="dwi", **wildcards)
+        prefix = bids(
+            root=root, suffix="dwi", desc="import", datatype="dwi", **wildcards
+        )
     else:
         prefix = bids(
             root=root, suffix="dwi", datatype="dwi", desc="denoise", **wildcards
@@ -543,6 +558,40 @@ rule concat_degibbs_dwi:
         "{params.cmd} 2> {log}"
 
 
+rule concat_input_dwi:
+    """ rule for concatenating input dwi (when skipping dwi preproc) """
+    input:
+        dwi_niis=lambda wildcards: expand(
+            bids(
+                root=root,
+                suffix="dwi.nii.gz",
+                desc="import",
+                datatype="dwi",
+                **input_wildcards["dwi"]
+            ),
+            zip,
+            **snakebids.filter_list(input_zip_lists["dwi"], wildcards)
+        ),
+    params:
+        cmd=get_concat_or_cp_cmd,
+    output:
+        dwi_concat=bids(
+            root=root,
+            suffix="dwi.nii.gz",
+            desc="import",
+            datatype="dwi",
+            **subj_wildcards
+        ),
+    container:
+        config["singularity"]["mrtrix"]
+    log:
+        bids(root="logs", suffix="concat_input_dwi.log", **subj_wildcards),
+    group:
+        "subj"
+    shell:
+        "{params.cmd} 2> {log}"
+
+
 rule concat_runs_bvec:
     input:
         lambda wildcards: expand(
@@ -701,7 +750,7 @@ rule qc_brainmask_for_eddy:
         img=bids(
             root=root,
             suffix="b0.nii.gz",
-            desc="dwiref",
+            desc="preproc",
             datatype="dwi",
             **subj_wildcards
         ),
@@ -788,40 +837,40 @@ def get_dwi_ref(wildcards):
     filtered = snakebids.filter_list(input_zip_lists["dwi"], wildcards)
     num_scans = len(filtered["subject"])
 
-    if num_scans > 1 and config["use_topup"]:
+    if config["skip_dwi_preproc"]:
+        return bids(
+            root=root,
+            suffix="b0.nii.gz",
+            desc="preproc",
+            datatype="dwi",
+            **subj_wildcards,
+        )
+    elif num_scans > 1 and config["use_topup"]:
         return bids(
             root=root,
             suffix="b0.nii.gz",
             desc="topup",
             method="jac",
             datatype="dwi",
-            **subj_wildcards
+            **subj_wildcards,
         )
     else:
-        return bids(
-            root=root,
-            suffix="b0.nii.gz",
-            desc="degibbs",
-            datatype="dwi",
-            **subj_wildcards
-        )
-
-
-rule cp_dwi_ref:
-    input:
-        get_dwi_ref,
-    output:
-        bids(
-            root=root,
-            suffix="b0.nii.gz",
-            desc="dwiref",
-            datatype="dwi",
-            **subj_wildcards
-        ),
-    group:
-        "subj"
-    shell:
-        "cp {input} {output}"
+        if config["use_eddy"]:
+            return bids(
+                root=root,
+                suffix="b0.nii.gz",
+                desc="degibbs",
+                datatype="dwi",
+                **subj_wildcards,
+            )
+        else:
+            return bids(
+                root=root,
+                suffix="b0.nii.gz",
+                desc="preproc",
+                datatype="dwi",
+                **subj_wildcards,
+            )
 
 
 def get_eddy_topup_input(wildcards):
@@ -1013,6 +1062,13 @@ rule cp_eddy_outputs:
             datatype="dwi",
             **subj_wildcards
         ),
+        json=bids(
+            root=root,
+            suffix="dwi.json",
+            desc="degibbs",
+            datatype="dwi",
+            **subj_wildcards
+        ),
     output:
         multiext(
             bids(
@@ -1021,6 +1077,7 @@ rule cp_eddy_outputs:
             ".nii.gz",
             ".bvec",
             ".bval",
+            ".json",
         ),
     group:
         "subj"
@@ -1416,23 +1473,58 @@ rule eddymotion:
 
 
 # then need a rule to apply the transforms
+def get_preproc_dwi_input(wildcards):
+    if config["skip_dwi_preproc"]:
+        # use input dwi image as preproc
+        return multiext(
+            bids(
+                root=root, suffix="dwi", desc="import", datatype="dwi", **subj_wildcards
+            ),
+            ".nii.gz",
+            ".bval",
+            ".bvec",
+            ".json",
+        )
+
+    else:
+        if config["use_eddy"]:
+            # use eddy dwi as preproc
+            return multiext(
+                bids(
+                    root=root,
+                    suffix="dwi",
+                    desc="eddy",
+                    datatype="dwi",
+                    **subj_wildcards
+                ),
+                ".nii.gz",
+                ".bvec",
+                ".bval",
+                ".json",
+            )
+
+        else:
+            # use moco dwi as preproc
+            return multiext(
+                bids(
+                    root=root,
+                    suffix="dwi",
+                    desc="moco",
+                    datatype="dwi",
+                    **subj_wildcards
+                ),
+                ".nii.gz",
+                ".bvec",
+                ".bval",
+                ".json",
+            )
 
 
 rule cp_to_preproc_dwi:
     """ should use config flags to decide what input to use here.
     e.g. degibbs, moco, topup, eddy... """
     input:
-        expand(
-            bids(
-                root=root,
-                suffix="dwi.{ext}",
-                datatype="dwi",
-                desc="moco",
-                **subj_wildcards
-            ),
-            ext=["nii.gz", "bvec", "bval", "json"],
-            allow_missing=True,
-        ),
+        get_preproc_dwi_input,
     output:
         expand(
             bids(
