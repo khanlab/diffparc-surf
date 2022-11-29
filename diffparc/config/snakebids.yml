@@ -428,4 +428,7 @@ slspec_txt: False
 eddy_no_s2v: True
 
 use_topup: False
-use_synthseg: True
+use_synthseg_seed: True
+use_synthseg_targets: False
+
+
