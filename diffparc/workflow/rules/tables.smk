@@ -1,3 +1,50 @@
+rule write_metrics_legacy_csv:
+    """ for backwards compatiblity with old diffparc - 
+    separate file for each metric, using identical column names (parcels), 
+    and index column as "subj", formatted as sub-{subject}_ses-{session} """
+    input:
+        dscalar=bids(
+            root=root,
+            from_="{template}",
+            datatype="surf",
+            label="{seed}",
+            suffix="{metric}.dscalar.nii",
+            **subj_wildcards,
+        ),
+        dlabel=bids(
+            root=root,
+            datatype="surf",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="maxprob.dlabel.nii",
+            **subj_wildcards,
+        ),
+    params:
+        index_col_value=bids(
+            **subj_wildcards, include_subject_dir=False, include_session_dir=False
+        ),
+        index_col_name="subj",
+    output:
+        csv=bids(
+            root=root,
+            datatype="tabular",
+            from_="{template}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            form="legacy",
+            suffix="{metric}.csv",
+            **subj_wildcards,
+        ),
+    container:
+        config["singularity"]["pythondeps"]
+    group:
+        "subj"
+    script:
+        "../scripts/write_surf_metrics_legacy.py"
+
+
 rule write_surf_metrics_long_csv:
     input:
         dscalars=expand(
@@ -86,3 +133,42 @@ rule write_surf_metrics_wide_csv:
         "subj"
     script:
         "../scripts/write_surf_metrics_wide.py"
+
+
+rule concat_subj_csv:
+    input:
+        csvs=expand(
+            bids(
+                root=root,
+                datatype="tabular",
+                from_="{template}",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                form="{form}",
+                suffix="{suffix}.csv",
+                **subj_wildcards
+            ),
+            zip,
+            **input_zip_lists["T1w"],
+            allow_missing=True
+        ),
+        #loop over subjects and sessions 
+    output:
+        csv=bids(
+            root=root,
+            subject="group",
+            datatype="tabular",
+            from_="{template}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            form="{form}",
+            suffix="{suffix}.csv",
+        ),
+    container:
+        config["singularity"]["pythondeps"]
+    group:
+        "agg"
+    script:
+        "../scripts/concat_csv.py"

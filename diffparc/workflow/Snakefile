@@ -230,6 +230,29 @@ rule all_preprocdwi:
         ),
 
 
+rule all_legacy_csv:
+    input:
+        csv=expand(
+            bids(
+                root=root,
+                subject="group",
+                datatype="tabular",
+                from_="{template}",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                form="{form}",
+                suffix="{suffix}.csv",
+            ),
+            template=config["template"],
+            targets=config["targets"].keys(),
+            seedspervertex=config["seeds_per_vertex"],
+            seed=config["seeds"],
+            form="legacy",
+            suffix=config["surface_metrics"],
+        ),
+
+
 rule all_tables:
     input:
         csv=expand(

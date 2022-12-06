@@ -24,7 +24,7 @@ targets_by_analysis_level:
   participant:
     - ''  # if '', then the first rule is run
   group:
-    - 'all_group_dscalar'
+    - 'all_legacy_csv'
 
 pybids_inputs:
   dwi:
@@ -284,13 +284,13 @@ targets:
   harvardoxford7:
     template_dseg: resources/tpl-{template}/HarvardOxford/CorticalTargets.striatum_withRostralMotor.nii.gz
     labels:
-      - limbic
-      - executive
-      - rostralmotor
-      - caudalmotor
-      - parietal
-      - occipital
-      - temporal
+      - Limbic
+      - Executive
+      - Rostral_motor
+      - Caudal_motor
+      - Parietal
+      - Occipital
+      - Temporal
     label_list_txt: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/label_list_harvardoxford7.txt
 
 seeds:
@@ -310,7 +310,7 @@ synthseg_labels:
       - 58
 
 synthseg_targets:
-  limbic:
+  Limbic:
     in:
       - 1012
       - 1014
@@ -319,7 +319,7 @@ synthseg_targets:
       - 2014
       - 2019
     out: 1
-  executive:
+  Executive:
     in: 
       - 1027
       - 1028
@@ -328,7 +328,7 @@ synthseg_targets:
       - 2028
       - 2032
     out: 2
-  rostralmotor:
+  Rostral_motor:
     in:
       - 1018
       - 1020
@@ -337,12 +337,12 @@ synthseg_targets:
       - 2020
       - 2003
     out: 3
-  caudalmotor:
+  Caudal_motor:
     in:
       - 1024
       - 2024
     out: 4
-  parietal:
+  Parietal:
     in:
       - 1022
       - 1029
@@ -355,7 +355,7 @@ synthseg_targets:
       - 2031
       - 2025
     out: 5
-  occipital: 
+  Occipital: 
     in:
       - 1011
       - 1013
@@ -367,7 +367,7 @@ synthseg_targets:
       - 2021
 
     out: 6
-  temporal:
+  Temporal:
     in: 
       - 1030
       - 1015
