@@ -91,7 +91,7 @@ parse_args:
     nargs: '+'
 
 
-  --skip_preproc_dwi:
+  --skip_dwi_preproc:
     help: 'Skip dwi pre-processing. Assumes dwi loaded is pre-processed and already co-registered to the T1w image (default: %(default)s)'
     action: 'store_true'
     default: False
@@ -442,5 +442,8 @@ eddy_no_s2v: True
 
 use_eddy: False
 use_topup: False
-use_synthseg: True
 skip_dwi_preproc: False
+use_synthseg_seed: True
+use_synthseg_targets: False
+
+

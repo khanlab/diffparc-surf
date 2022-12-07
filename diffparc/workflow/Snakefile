@@ -176,6 +176,44 @@ rule all_surfmorph:
         ),
 
 
+def get_bundle_files():
+    files = []
+    for seed in config["seeds"].keys():
+        for targets in config["targets"].keys():
+            files.extend(
+                expand(
+                    bids(
+                        root=root,
+                        datatype="surf",
+                        hemi="{hemi}",
+                        desc="{targets}",
+                        parc="{parc}",
+                        label="{seed}",
+                        seedspervertex="{seedspervertex}",
+                        suffix="tdi.nii.gz",
+                        **subj_wildcards,
+                    ),
+                    hemi=config["hemispheres"],
+                    seed=seed,
+                    targets=targets,
+                    parc=config["targets"][targets]["labels"],
+                    seedspervertex=config["seeds_per_vertex"],
+                    allow_missing=True,
+                )
+            )
+
+    return files
+
+
+rule all_bundles:
+    input:
+        tdi=expand(
+            get_bundle_files(),
+            zip,
+            **input_zip_lists["dwi"],
+        ),
+
+
 rule all_group_dscalar:
     input:
         cifti_dscalar_group=expand(
@@ -267,6 +305,7 @@ rule all_tables:
 
 rule all:
     input:
+        rules.all_bundles.input,
         rules.all_tables.input,
     default_target: True
 

@@ -56,7 +56,7 @@ rule set_surface_structure:
 
 
 def get_subject_seg_for_shapereg(wildcards):
-    if config["use_synthseg"]:
+    if config["use_synthseg_seed"]:
         return (
             bids(
                 root=root,
