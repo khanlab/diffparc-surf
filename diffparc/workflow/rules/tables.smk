@@ -150,7 +150,7 @@ rule concat_subj_csv:
                 **subj_wildcards
             ),
             zip,
-            **input_zip_lists["dwi"],
+            **subj_zip_list,
             allow_missing=True
         ),
         #loop over subjects and sessions 
