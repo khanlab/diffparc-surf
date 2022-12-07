@@ -168,7 +168,7 @@ rule track_from_vertices:
 
 def get_dseg_targets(wildcards):
 
-    if config["use_synthseg"]:
+    if config["use_synthseg_targets"]:
         return (
             bids(
                 root=root,
@@ -197,7 +197,7 @@ def get_dseg_targets(wildcards):
 
 def get_dseg_targets_nii(wildcards):
 
-    if config["use_synthseg"]:
+    if config["use_synthseg_targets"]:
         return (
             bids(
                 root=root,

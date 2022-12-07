@@ -56,7 +56,7 @@ rule set_surface_structure:
 
 
 def get_subject_seg_for_shapereg(wildcards):
-    if config["use_synthseg"]:
+    if config["use_synthseg_seed"]:
         return (
             bids(
                 root=root,
@@ -464,37 +464,21 @@ rule create_cifti_metric_dscalar:
         "wb_command -cifti-create-dense-scalar {output} -left-metric {input.left_metric} -right-metric {input.right_metric}"
 
 
-def get_cifti_dscalar_subjects(wildcards):
-    filename = (
-        bids(
-            root=root,
-            **subj_wildcards,
-            from_="{template}",
-            datatype="surf",
-            label="{seed}",
-            suffix="{metric}.dscalar.nii"
-        ),
-    )
-
-    if "session" in subj_wildcards:
-        return sorted(
-            expand(
-                filename,
-                subject=inputs.subjects,
-                session=inputs.sessions,
-                **wildcards,
-                allow_missing=True
-            )
-        )
-    else:
-        return sorted(
-            expand(filename, subject=inputs.subjects, **wildcards, allow_missing=True)
-        )
-
-
 rule merge_dscalar_metrics_over_subjects:
     input:
-        cifti_dscalar_subjects=get_cifti_dscalar_subjects,
+        cifti_dscalar_subjects=expand(
+            bids(
+                root=root,
+                **subj_wildcards,
+                from_="{template}",
+                datatype="surf",
+                label="{seed}",
+                suffix="{metric}.dscalar.nii"
+            ),
+            zip,
+            **subj_zip_list,
+            allow_missing=True
+        ),
     params:
         merge_opt=lambda wildcards, input: " ".join(
             [f"-cifti {cifti}" for cifti in input.cifti_dscalar_subjects]

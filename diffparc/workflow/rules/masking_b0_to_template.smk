@@ -1,13 +1,7 @@
 # this performs registration from subject b0 to template b0, without using any existing mask
 rule ants_b0_to_template:
     input:
-        flo=bids(
-            root=root,
-            suffix="b0.nii.gz",
-            desc="dwiref",
-            datatype="dwi",
-            **subj_wildcards
-        ),
+        flo=get_dwi_ref,
         ref=lambda wildcards: workflow.source_path(
             os.path.join("..", "..", config["template_b0"])
         ).format(**wildcards),
@@ -107,13 +101,7 @@ rule warp_brainmask_from_template_reg_b0:
         mask=lambda wildcards: workflow.source_path(
             os.path.join("..", "..", config["template_mask"])
         ).format(**wildcards),
-        ref=bids(
-            root=root,
-            suffix="b0.nii.gz",
-            desc="dwiref",
-            datatype="dwi",
-            **subj_wildcards
-        ),
+        ref=get_dwi_ref,
         inv_composite=bids(
             root=root,
             datatype="dwi",
