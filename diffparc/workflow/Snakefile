@@ -36,19 +36,50 @@ input_wildcards = inputs.input_wildcards
 input_zip_lists = inputs.input_zip_lists
 input_path = inputs.input_path
 
-# create a subj_zip_lists bids_input var to loop over subjects/sessions
-subj_zip_lists = dict()
-for bidsinput in config["pybids_inputs"].keys():
-    zipl = input_zip_lists[bidsinput]
-    if "session" in zipl:
-        # has session, so we have to zip to remove duplicates
-        (subzip, seszip) = zip(*list(set(zip(zipl["subject"], zipl["session"]))))
-        subj_zip_lists[bidsinput] = {"subject": subzip, "session": seszip}
-    else:
-        # does not have session, so we can remove duplicates easily
-        subj_zip_lists[bidsinput] = {"subject": list(set(zipl["subject"]))}
+# ------ subj_zip_list ---- (consider adding this logic to snakebids) ---------
+# create a subj_zip_list bids_input var to loop over subjects/sessions where
+# *all* the pybids inputs are present (e.g. T1w and dwi both present)
+#
+# does this by performing a set intersection of the (subject+session only) zip lists for different modalities
 
-print(subj_zip_lists)
+subj_set_intersection = None
+subj_set_union = None  # union not really used except for finding set union - intersection (skipped subjects)
+subj_zip_list = None
+
+for bidsinput in config["pybids_inputs"].keys():
+    zipl = inputs.input_zip_lists[bidsinput]
+    if "session" in zipl:
+        # has session, so we have to zip, then use set to remove duplicates
+        subj_set = set(zip(zipl["subject"], zipl["session"]))
+    else:
+        # does not have session, so we can remove duplicates easily by using set
+        subj_set = set(zipl["subject"])
+
+    subj_set_intersection = (
+        subj_set
+        if subj_set_intersection == None
+        else subj_set.intersection(subj_set_intersection)
+    )
+    subj_set_union = (
+        subj_set if subj_set_union == None else subj_set.union(subj_set_union)
+    )
+
+
+subj_set_difference = subj_set_union - subj_set_intersection
+# print(f'Skipping following (subjects/sessions) since they are missing one of the required bids inputs: {subj_set_difference}')
+
+if "session" in zipl:
+    (subzip, seszip) = zip(*list(subj_set_intersection))  # zip it up again
+    subj_zip_list = {
+        "subject": subzip,
+        "session": seszip,
+    }  # create the new subj_zip_list
+
+else:
+    subj_zip_list = {"subject": list(subj_set_intersection)}
+
+# ------------------------------------------------------------------------------
+
 
 # set the default bids root for output files
 root = config["root"]
@@ -64,7 +95,7 @@ def get_eddy_quad_all():
                     root=root, datatype="dwi", suffix="eddy.qc_pages", **subj_wildcards
                 ),
                 zip,
-                **subj_zip_lists["dwi"]
+                **subj_zip_list
             )
         }
 
@@ -85,7 +116,7 @@ def get_bedpost_all():
                     **subj_wildcards
                 ),
                 zip,
-                **subj_zip_lists["dwi"]
+                **subj_zip_list
             )
         }
 
@@ -114,7 +145,7 @@ rule all_diffparc:
                 allow_missing=True,
             ),
             zip,
-            **subj_zip_lists["dwi"],
+            **subj_zip_list,
         ),
 
 
@@ -141,7 +172,7 @@ rule all_surfmorph:
                 allow_missing=True,
             ),
             zip,
-            **subj_zip_lists["dwi"],
+            **subj_zip_list,
         ),
 
 
@@ -182,14 +213,14 @@ rule all_preprocdwi:
         mask_qc=expand(
             bids(root="qc", suffix="mask.png", desc="brain", **subj_wildcards),
             zip,
-            **subj_zip_lists["dwi"]
+            **subj_zip_list
         ),
         reg_qc=expand(
             bids(
                 root="qc", suffix="reg.png", from_="dwiref", to="T1w", **subj_wildcards
             ),
             zip,
-            **subj_zip_lists["dwi"]
+            **subj_zip_list
         ),
         dtifit=expand(
             bids(
@@ -202,7 +233,7 @@ rule all_preprocdwi:
                 **subj_wildcards
             ),
             zip,
-            **subj_zip_lists["dwi"]
+            **subj_zip_list
         ),
 
 
@@ -230,9 +261,8 @@ rule all_tables:
                 allow_missing=True,
             ),
             zip,
-            **subj_zip_lists["dwi"],
+            **subj_zip_list,
         ),
-
 
 
 rule all:
