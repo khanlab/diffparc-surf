@@ -80,7 +80,6 @@ else:
 
 # ------------------------------------------------------------------------------
 
-
 # set the default bids root for output files
 root = config["root"]
 
@@ -210,7 +209,7 @@ rule all_bundles:
         tdi=expand(
             get_bundle_files(),
             zip,
-            **input_zip_lists["dwi"],
+            **subj_zip_list,
         ),
 
 
