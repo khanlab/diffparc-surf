@@ -113,6 +113,8 @@ jobs:
     - name: Test bids
       run: |
         poetry run diffparc diffparc/test_data/bids_AP_PA test_out participant -np
-
-
+        poetry run diffparc diffparc/test_data/bids_AP_PA_multisubj test_out participant -np
+        poetry run diffparc diffparc/test_data/bids_withses test_out participant -np
+        poetry run diffparc diffparc/test_data/bids_withses_missing_dwi test_out participant -np
+        poetry run diffparc diffparc/test_data/bids_withses_missing_T1w test_out participant -np
 
