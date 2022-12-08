@@ -298,7 +298,7 @@ rule all_legacy_csv:
         ),
 
 
-rule all_tables:
+rule all_subj_tables:
     input:
         csv=expand(
             expand(
@@ -325,11 +325,40 @@ rule all_tables:
             **subj_zip_list,
         ),
 
+rule all_subj_tables_legacy:
+    input:
+        csv=expand(
+            expand(
+                bids(
+                    root=root,
+                    datatype="tabular",
+                    from_="{template}",
+                    desc="{targets}",
+                    label="{seed}",
+                    seedspervertex="{seedspervertex}",
+                    form="{form}",
+                    suffix="{suffix}.csv",
+                    **subj_wildcards,
+                ),
+                template=config["template"],
+                hemi=config["hemispheres"],
+                seed=config["seeds"].keys(),
+                targets=config["targets"].keys(),
+                seedspervertex=config["seeds_per_vertex"],
+                form=["legacy"],
+                suffix=config["surface_metrics"],
+                allow_missing=True,
+            ),
+            zip,
+            **subj_zip_list,
+        ),
+
+
 
 rule all:
     input:
         rules.all_bundles.input,
-        rules.all_tables.input,
+        rules.all_subj_tables_legacy.input,
     default_target: True
 
 
