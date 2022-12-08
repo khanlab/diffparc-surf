@@ -19,7 +19,9 @@ struc_to_hemi_dict = {
 
 row = dict()
 row["subject"] = [snakemake.wildcards.subject]
-row["session"] = [snakemake.wildcards.session]
+
+if "session" in snakemake.wildcards._names:
+    row["session"] = [snakemake.wildcards.session]
 
 reduce_func_dict = {"inout": np.mean, "surfarea": np.sum}
 
@@ -59,11 +61,6 @@ for dscalar_nii, metric in zip(snakemake.input.dscalars, snakemake.params.metric
                     f"warning: {labelname} is empty, subject={snakemake.wildcards.subject}, setting to 0"
                 )
                 value = 0
-
-            # if 'session' in snakemake.wildcards:
-            #    row['session'] = [snakemake.wildcards.session]
-            # else:
-            #    row['session'] = ['']
 
             # col name will be,  {hemi}_{label}_{metric}
 

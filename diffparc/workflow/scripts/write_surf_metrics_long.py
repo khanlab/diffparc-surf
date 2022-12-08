@@ -56,13 +56,11 @@ for dscalar_nii, metric in zip(snakemake.input.dscalars, snakemake.params.metric
 
             row = dict()
 
-            # if 'session' in snakemake.wildcards:
-            #    row['session'] = [snakemake.wildcards.session]
-            # else:
-            #    row['session'] = ['']
-
             row["subject"] = [snakemake.wildcards.subject]
-            row["session"] = [snakemake.wildcards.session]
+
+            if "session" in snakemake.wildcards._names:
+                row["session"] = [snakemake.wildcards.session]
+
             row["label"] = [labelname]
             row["metric"] = [metric]
             row["hemi"] = [hemi]
