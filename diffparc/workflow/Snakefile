@@ -189,7 +189,7 @@ def get_bundle_files():
                         parc="{parc}",
                         label="{seed}",
                         seedspervertex="{seedspervertex}",
-                        suffix="tdi.nii.gz",
+                        suffix="tdimaskfa.nii.gz",
                         **subj_wildcards,
                     ),
                     hemi=config["hemispheres"],
@@ -376,3 +376,4 @@ include: "rules/surfmorph.smk"
 include: "rules/surftrack.smk"
 include: "rules/synthseg.smk"
 include: "rules/tables.smk"
+include: "rules/parcbundles.smk"

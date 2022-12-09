@@ -366,3 +366,53 @@ rule tckgen:
         config["singularity"]["mrtrix"]
     shell:
         "tckgen -nthreads {threads} -algorithm iFOD2 -mask {input.mask} {params.seed_strategy} -select {params.streamlines} {input.wm_fod} {output.tck}"
+
+
+rule dwi_to_tensor:
+    input:
+        dwi=rules.nii2mif.output.dwi,
+        mask=rules.nii2mif.output.mask,
+    output:
+        tensor=bids(
+            root=root,
+            datatype="dwi",
+            suffix="tensor.mif",
+            **subj_wildcards,
+        ),
+    threads: 4
+    resources:
+        mem_mb=16000,
+    group:
+        "subj"
+    container:
+        config["singularity"]["mrtrix"]
+    shell:
+        "dwi2tensor -mask {input.mask} {input.dwi} {output.tensor} -nthreads {threads}"
+
+
+rule tensor_to_metrics:
+    input:
+        tensor=rules.dwi_to_tensor.output.tensor,
+        mask=rules.nii2mif.output.mask,
+    output:
+        fa=bids(
+            root=root,
+            datatype="dwi",
+            suffix="FA.nii.gz",
+            **subj_wildcards,
+        ),
+        md=bids(
+            root=root,
+            datatype="dwi",
+            suffix="MD.nii.gz",
+            **subj_wildcards,
+        ),
+    threads: 4
+    resources:
+        mem_mb=16000,
+    group:
+        "subj"
+    container:
+        config["singularity"]["mrtrix"]
+    shell:
+        "tensor2metric -mask {input.mask} -fa {output.fa} -adc {output.md} {input.tensor}"
