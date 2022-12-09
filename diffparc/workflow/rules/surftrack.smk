@@ -163,7 +163,7 @@ rule track_from_vertices:
         "tckgen -quiet -nthreads 0  -algorithm iFOD2 -mask {input.mask} "
         " {input.wm_fod} {output.tck_dir}/vertex_{{1}}.tck "
         " -seed_sphere {{2}},{params.radius} -seeds {params.seedspervertex} "
-        " :::  `seq -w $(cat {input.csv} | wc -l)` ::: `cat {input.csv}` "
+        " :::  `seq --format '%05g' $(cat {input.csv} | wc -l)` ::: `cat {input.csv}` "
 
 
 def get_dseg_targets(wildcards):
@@ -591,7 +591,7 @@ def get_tck_filename(wildcards):
         hemi="{hemi}",
         label="{seed}",
         seedspervertex="{seedspervertex}",
-        suffix="vertextracts/vertex_{{index:04d}}.tck",
+        suffix="vertextracts/vertex_{{index:05d}}.tck",
         **subj_wildcards,
     ).format(**wildcards)
 
@@ -666,6 +666,9 @@ rule extract_target_mask:
 
 
 rule create_parc_bundle:
+    """ create parc bundle from list of streamlines connected to the region.
+    if there are no streamlines, then we simply touch the file - the next
+    rule will check for a zero-sized file"""
     input:
         tcklist=bids(
             root=root,
@@ -713,11 +716,18 @@ rule create_parc_bundle:
     container:
         config["singularity"]["diffparc_deps"]
     shell:
-        "tckedit `cat {input.tcklist}` {output.bundle} -include {input.mask}"
+        "if [ `cat {input.tcklist} | wc -l` == 0 ]; "
+        "then "
+        "  touch {output.bundle}; "
+        "else "
+        "  tckedit `cat {input.tcklist}` {output.bundle} -include {input.mask}; "
+        "fi"
 
 
 rule create_parc_tdi:
-    """tract density image for the parcel"""
+    """tract density image for the parcel. if there are no streamlines,
+    then we are given a zero-sized file (touched in previous rule),
+    and if so, we create a zero-valued image as the tract density"""
     input:
         bundle=bids(
             root=root,
@@ -754,4 +764,9 @@ rule create_parc_tdi:
     container:
         config["singularity"]["diffparc_deps"]
     shell:
-        "tckmap {input.bundle} {output.tdi} -template {input.ref}"
+        "if [ -s {input.bundle} ]; "
+        "then "
+        "   tckmap {input.bundle} {output.tdi} -template {input.ref}; "
+        "else "
+        "   mrcalc {input.ref} 0 -mult {output.tdi}; "
+        "fi"
