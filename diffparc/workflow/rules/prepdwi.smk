@@ -6,31 +6,35 @@ wildcard_constraints:
     dir="[a-zA-Z0-9]+",
 
 
-rule import_dwi:
-    input:
-        nii=[
-            re.sub(".nii.gz", ext, input_path["dwi"])
-            for ext in [".nii.gz", ".bval", ".bvec", ".json"]
-        ],
-    output:
-        nii=multiext(
-            bids(
-                root=root,
-                suffix="dwi",
-                desc="import",
-                datatype="dwi",
-                **input_wildcards["dwi"]
+if not config["skip_dwi_preproc"]:
+
+    rule import_dwi:
+        input:
+            nii=[
+                re.sub(".nii.gz", ext, input_path["dwi"])
+                for ext in [".nii.gz", ".bval", ".bvec", ".json"]
+            ],
+        output:
+            nii=multiext(
+                bids(
+                    root=root,
+                    suffix="dwi",
+                    desc="import",
+                    datatype="dwi",
+                    **input_wildcards["dwi"]
+                ),
+                ".nii.gz",
+                ".bval",
+                ".bvec",
+                ".json",
             ),
-            ".nii.gz",
-            ".bval",
-            ".bvec",
-            ".json",
-        ),
-    group:
-        "subj"
-    run:
-        for in_file, out_file in zip(input, output):
-            shell("cp -v {in_file} {out_file}")
+        group:
+            "subj"
+        run:
+            for in_file, out_file in zip(input, output):
+                shell("cp -v {in_file} {out_file}")
+
+
 
 
 rule dwidenoise:
@@ -1473,58 +1477,50 @@ rule eddymotion:
 
 
 # then need a rule to apply the transforms
-def get_preproc_dwi_input(wildcards):
-    if config["skip_dwi_preproc"]:
-        # use input dwi image as preproc
+def get_preproc_dwi_input_dwispace(wildcards):
+    #    if config["skip_dwi_preproc"]:
+    #        # use input dwi image as preproc
+    #        return multiext(
+    #            bids(
+    #                root=root, suffix="dwi", desc="import", datatype="dwi", **subj_wildcards
+    #            ),
+    #            ".nii.gz",
+    #            ".bval",
+    #            ".bvec",
+    #            ".json",
+    #        )
+    #
+    #    else:
+    if config["use_eddy"]:
+        # use eddy dwi as preproc
         return multiext(
             bids(
-                root=root, suffix="dwi", desc="import", datatype="dwi", **subj_wildcards
+                root=root, suffix="dwi", desc="eddy", datatype="dwi", **subj_wildcards
             ),
             ".nii.gz",
-            ".bval",
             ".bvec",
+            ".bval",
             ".json",
         )
 
     else:
-        if config["use_eddy"]:
-            # use eddy dwi as preproc
-            return multiext(
-                bids(
-                    root=root,
-                    suffix="dwi",
-                    desc="eddy",
-                    datatype="dwi",
-                    **subj_wildcards
-                ),
-                ".nii.gz",
-                ".bvec",
-                ".bval",
-                ".json",
-            )
-
-        else:
-            # use moco dwi as preproc
-            return multiext(
-                bids(
-                    root=root,
-                    suffix="dwi",
-                    desc="moco",
-                    datatype="dwi",
-                    **subj_wildcards
-                ),
-                ".nii.gz",
-                ".bvec",
-                ".bval",
-                ".json",
-            )
+        # use moco dwi as preproc
+        return multiext(
+            bids(
+                root=root, suffix="dwi", desc="moco", datatype="dwi", **subj_wildcards
+            ),
+            ".nii.gz",
+            ".bvec",
+            ".bval",
+            ".json",
+        )
 
 
 rule cp_to_preproc_dwi:
     """ should use config flags to decide what input to use here.
     e.g. degibbs, moco, topup, eddy... """
     input:
-        get_preproc_dwi_input,
+        get_preproc_dwi_input_dwispace,
     output:
         expand(
             bids(

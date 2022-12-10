@@ -1,4 +1,60 @@
+# if we skip dwi preproc, then we are loading dwi preproc in T1w space:
+
+
+if config["skip_dwi_preproc"]:
+
+    rule import_preproc_dwi:
+        input:
+            dwi_files=[
+                re.sub(".nii.gz", ext, input_path["dwi"])
+                for ext in [".nii.gz", ".bval", ".bvec"]
+            ],
+        output:
+            dwi=expand(
+                bids(
+                    root=root,
+                    suffix="dwi{ext}",
+                    desc="preproc",
+                    space="T1w",
+                    res=config["resample_dwi"]["resample_scheme"],
+                    datatype="dwi",
+                    **subj_wildcards
+                ),
+                ext=[".nii.gz", ".bval", ".bvec"],
+                allow_missing=True,
+            ),
+        group:
+            "subj"
+        run:
+            for in_file, out_file in zip(input, output):
+                shell("cp -v {in_file} {out_file}")
+
+
+    def get_preproc_brainmask(wildcards):
+        return re.sub(
+            "preproc.nii.gz", "brainmask.nii.gz", input_path["dwi"]
+        )  # make the search/replace configurable
+
+    rule import_preproc_brainmask:
+        input:
+            get_preproc_brainmask,
+        output:
+            brainmask=bids(
+                root=root,
+                suffix="mask.nii.gz",
+                desc="brain",
+                space="T1w",
+                res=config["resample_dwi"]["resample_scheme"],
+                datatype="dwi",
+                **subj_wildcards
+            ),
+        group:
+            "subj"
+        shell:
+            "cp {input} {output}"
 # just grab the first T1w for now:
+
+
 rule import_t1:
     input:
         lambda wildcards: expand(
@@ -336,157 +392,157 @@ rule create_cropped_ref_custom_resolution:
         "c3d {input} -resample-mm {params.resolution} {output}"
 
 
-rule resample_dwi_to_t1w:
-    input:
-        ref=bids(
-            root=root,
-            suffix="avgb0.nii.gz",
-            space="T1w",
-            desc="preproc",
-            proc="crop",
-            res=config["resample_dwi"]["resample_scheme"],
-            datatype="dwi",
-            **subj_wildcards
-        ),
-        dwi=bids(
-            root=root,
-            suffix="dwi.nii.gz",
-            desc="preproc",
-            datatype="dwi",
-            **subj_wildcards
-        ),
-        xfm_itk=bids(
-            root=root,
-            suffix="xfm.txt",
-            from_="dwi",
-            to="T1w",
-            type_="itk",
-            datatype="dwi",
-            **subj_wildcards
-        ),
-    params:
-        interpolation="Linear",
-    output:
-        dwi=bids(
-            root=root,
-            suffix="dwi.nii.gz",
-            desc="preproc",
-            space="T1w",
-            res=config["resample_dwi"]["resample_scheme"],
-            datatype="dwi",
-            **subj_wildcards
-        ),
-    container:
-        config["singularity"]["ants"]
-    resources:
-        mem_mb=32000,  #-- this is going to be dependent on size of image.. 
-    group:
-        "subj"
-    shell:
-        "antsApplyTransforms -d 3 --input-image-type 3 --input {input.dwi} --reference-image {input.ref} --transform {input.xfm_itk} --interpolation {params.interpolation} --output {output.dwi} --verbose "
+if not config["skip_dwi_preproc"]:
 
+    rule resample_dwi_to_t1w:
+        input:
+            ref=bids(
+                root=root,
+                suffix="avgb0.nii.gz",
+                space="T1w",
+                desc="preproc",
+                proc="crop",
+                res=config["resample_dwi"]["resample_scheme"],
+                datatype="dwi",
+                **subj_wildcards
+            ),
+            dwi=bids(
+                root=root,
+                suffix="dwi.nii.gz",
+                desc="preproc",
+                datatype="dwi",
+                **subj_wildcards
+            ),
+            xfm_itk=bids(
+                root=root,
+                suffix="xfm.txt",
+                from_="dwi",
+                to="T1w",
+                type_="itk",
+                datatype="dwi",
+                **subj_wildcards
+            ),
+        params:
+            interpolation="Linear",
+        output:
+            dwi=bids(
+                root=root,
+                suffix="dwi.nii.gz",
+                desc="preproc",
+                space="T1w",
+                res=config["resample_dwi"]["resample_scheme"],
+                datatype="dwi",
+                **subj_wildcards
+            ),
+        container:
+            config["singularity"]["ants"]
+        resources:
+            mem_mb=32000,  #-- this is going to be dependent on size of image.. 
+        group:
+            "subj"
+        shell:
+            "antsApplyTransforms -d 3 --input-image-type 3 --input {input.dwi} --reference-image {input.ref} --transform {input.xfm_itk} --interpolation {params.interpolation} --output {output.dwi} --verbose "
 
-rule resample_brainmask_to_t1w:
-    input:
-        ref=bids(
-            root=root,
-            suffix="avgb0.nii.gz",
-            space="T1w",
-            desc="preproc",
-            proc="crop",
-            res=config["resample_dwi"]["resample_scheme"],
-            datatype="dwi",
-            **subj_wildcards
-        ),
-        brainmask=get_dwi_mask(),
-        xfm_itk=bids(
-            root=root,
-            suffix="xfm.txt",
-            from_="dwi",
-            to="T1w",
-            type_="itk",
-            datatype="dwi",
-            **subj_wildcards
-        ),
-    params:
-        interpolation="NearestNeighbor",
-    output:
-        brainmask=bids(
-            root=root,
-            suffix="mask.nii.gz",
-            desc="brain",
-            space="T1w",
-            res=config["resample_dwi"]["resample_scheme"],
-            datatype="dwi",
-            **subj_wildcards
-        ),
-    container:
-        config["singularity"]["ants"]
-    resources:
-        mem_mb=32000,  #-- this is going to be dependent on size of image.. 
-    group:
-        "subj"
-    shell:
-        "antsApplyTransforms -d 3 --input-image-type 0 --input {input.brainmask} --reference-image {input.ref} --transform {input.xfm_itk} --interpolation {params.interpolation} --output {output.brainmask} --verbose"
+    rule resample_brainmask_to_t1w:
+        input:
+            ref=bids(
+                root=root,
+                suffix="avgb0.nii.gz",
+                space="T1w",
+                desc="preproc",
+                proc="crop",
+                res=config["resample_dwi"]["resample_scheme"],
+                datatype="dwi",
+                **subj_wildcards
+            ),
+            brainmask=get_dwi_mask(),
+            xfm_itk=bids(
+                root=root,
+                suffix="xfm.txt",
+                from_="dwi",
+                to="T1w",
+                type_="itk",
+                datatype="dwi",
+                **subj_wildcards
+            ),
+        params:
+            interpolation="NearestNeighbor",
+        output:
+            brainmask=bids(
+                root=root,
+                suffix="mask.nii.gz",
+                desc="brain",
+                space="T1w",
+                res=config["resample_dwi"]["resample_scheme"],
+                datatype="dwi",
+                **subj_wildcards
+            ),
+        container:
+            config["singularity"]["ants"]
+        resources:
+            mem_mb=32000,  #-- this is going to be dependent on size of image.. 
+        group:
+            "subj"
+        shell:
+            "antsApplyTransforms -d 3 --input-image-type 0 --input {input.brainmask} --reference-image {input.ref} --transform {input.xfm_itk} --interpolation {params.interpolation} --output {output.brainmask} --verbose"
 
-
-rule rotate_bvecs_to_t1w:
-    input:
-        bvecs=bids(
-            root=root,
-            suffix="dwi.bvec",
-            desc="preproc",
-            datatype="dwi",
-            **subj_wildcards
-        ),
-        xfm_fsl=bids(
-            root=root,
-            suffix="xfm.txt",
-            from_="dwi",
-            to="T1w",
-            type_="fsl",
-            datatype="dwi",
-            **subj_wildcards
-        ),
-        bvals=bids(
-            root=root,
-            suffix="dwi.bval",
-            desc="preproc",
-            datatype="dwi",
-            **subj_wildcards
-        ),
-    params:
-        script=os.path.join(workflow.basedir, "scripts/rotate_bvecs.sh"),
-    output:
-        bvecs=bids(
-            root=root,
-            suffix="dwi.bvec",
-            desc="preproc",
-            space="T1w",
-            res=config["resample_dwi"]["resample_scheme"],
-            datatype="dwi",
-            **subj_wildcards
-        ),
-        bvals=bids(
-            root=root,
-            suffix="dwi.bval",
-            desc="preproc",
-            space="T1w",
-            res=config["resample_dwi"]["resample_scheme"],
-            datatype="dwi",
-            **subj_wildcards
-        ),
-    container:
-        config["singularity"]["prepdwi"]  #fsl
-    group:
-        "subj"
-    shell:
-        "chmod a+x {params.script} && "
-        "{params.script} {input.bvecs} {input.xfm_fsl} {output.bvecs} && "
-        "cp -v {input.bvals} {output.bvals}"
-
-
+    rule rotate_bvecs_to_t1w:
+        input:
+            bvecs=bids(
+                root=root,
+                suffix="dwi.bvec",
+                desc="preproc",
+                datatype="dwi",
+                **subj_wildcards
+            ),
+            xfm_fsl=bids(
+                root=root,
+                suffix="xfm.txt",
+                from_="dwi",
+                to="T1w",
+                type_="fsl",
+                datatype="dwi",
+                **subj_wildcards
+            ),
+            bvals=bids(
+                root=root,
+                suffix="dwi.bval",
+                desc="preproc",
+                datatype="dwi",
+                **subj_wildcards
+            ),
+        params:
+            script=os.path.join(workflow.basedir, "scripts/rotate_bvecs.sh"),
+        output:
+            bvecs=bids(
+                root=root,
+                suffix="dwi.bvec",
+                desc="preproc",
+                space="T1w",
+                res=config["resample_dwi"]["resample_scheme"],
+                datatype="dwi",
+                **subj_wildcards
+            ),
+            bvals=bids(
+                root=root,
+                suffix="dwi.bval",
+                desc="preproc",
+                space="T1w",
+                res=config["resample_dwi"]["resample_scheme"],
+                datatype="dwi",
+                **subj_wildcards
+            ),
+        container:
+            config["singularity"]["prepdwi"]  #fsl
+        group:
+            "subj"
+        shell:
+            "chmod a+x {params.script} && "
+            "{params.script} {input.bvecs} {input.xfm_fsl} {output.bvecs} && "
+            "cp -v {input.bvals} {output.bvals}"
 # dti fitting on dwi in t1w space
+
+
 rule dtifit_resampled_t1w:
     input:
         dwi=bids(

@@ -67,20 +67,6 @@ rule dwi2response_msmt:
     input:
         dwi=rules.nii2mif.output.dwi,
         mask=rules.nii2mif.output.mask,
-        bvec=bids(
-            root=root,
-            suffix="dwi.bvec",
-            desc="preproc",
-            datatype="dwi",
-            **subj_wildcards
-        ),
-        bval=bids(
-            root=root,
-            suffix="dwi.bval",
-            desc="preproc",
-            datatype="dwi",
-            **subj_wildcards
-        ),
     output:
         wm_rf=bids(
             root=root,
@@ -114,7 +100,7 @@ rule dwi2response_msmt:
     container:
         config["singularity"]["mrtrix"]
     shell:
-        "dwi2response dhollander {input.dwi} {output.wm_rf} {output.gm_rf} {output.csf_rf} -fslgrad {input.bvec} {input.bval} -nthreads {threads} -mask {input.mask}"
+        "dwi2response dhollander {input.dwi} {output.wm_rf} {output.gm_rf} {output.csf_rf}  -nthreads {threads} -mask {input.mask}"
 
 
 rule dwi2fod_msmt:
@@ -209,20 +195,6 @@ rule dwi2response_csd:
     input:
         dwi=rules.nii2mif.output.dwi,
         mask=rules.nii2mif.output.mask,
-        bvec=bids(
-            root=root,
-            suffix="dwi.bvec",
-            desc="preproc",
-            datatype="dwi",
-            **subj_wildcards
-        ),
-        bval=bids(
-            root=root,
-            suffix="dwi.bval",
-            desc="preproc",
-            datatype="dwi",
-            **subj_wildcards
-        ),
     output:
         wm_rf=bids(
             root=root,
@@ -240,7 +212,7 @@ rule dwi2response_csd:
     container:
         config["singularity"]["mrtrix"]
     shell:
-        "dwi2response fa {input.dwi} {output.wm_rf}  -fslgrad {input.bvec} {input.bval} -nthreads {threads} -mask {input.mask}"
+        "dwi2response fa {input.dwi} {output.wm_rf} -nthreads {threads} -mask {input.mask}"
 
 
 rule dwi2fod_csd:
