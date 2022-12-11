@@ -33,7 +33,7 @@ if config["skip_dwi_preproc"]:
     def get_preproc_brainmask(wildcards):
         return re.sub(
             "preproc.nii.gz", "brainmask.nii.gz", input_path["dwi"]
-        )  # make the search/replace configurable
+        )  # TODO: make the search/replace configurable
 
     rule import_preproc_brainmask:
         input:
