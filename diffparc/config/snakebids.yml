@@ -180,6 +180,7 @@ parse_args:
       - 'median'
       - 'min'
       - 'max'
+    default: 'mean'
 
   --stat_across_tcks:
     help: 'Statistic to use aggregating DTI metrics across streamlines at a vertex (default: %(default)s)'
@@ -189,6 +190,7 @@ parse_args:
       - 'median'
       - 'min'
       - 'max'
+    default: 'mean'
 
 
 #---- to update below this
