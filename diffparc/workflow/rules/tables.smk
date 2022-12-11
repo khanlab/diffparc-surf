@@ -1,16 +1,33 @@
-rule write_metrics_legacy_csv:
-    """ for backwards compatiblity with old diffparc - 
-    separate file for each metric, using identical column names (parcels), 
-    and index column as "subj", formatted as sub-{subject}_ses-{session} """
-    input:
-        dscalar=bids(
+def get_dscalar_nii(wildcards):
+    metric = wildcards.metric
+    if metric == "surfarea" or metric == "inout":
+        dscalar = bids(
             root=root,
             from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="{metric}.dscalar.nii",
             **subj_wildcards,
-        ),
+        )
+    elif metric == "FA" or metric == "MD":
+        dscalar = bids(
+            root=root,
+            datatype="surf",
+            desc="{targets}",
+            seedspervertex="{seedspervertex}",
+            label="{seed}",
+            suffix="{metric}.dscalar.nii",
+            **subj_wildcards,
+        )
+    return dscalar.format(**wildcards)
+
+
+rule write_surf_metrics_legacy_csv:
+    """ for backwards compatiblity with old diffparc - 
+    separate file for each metric, using identical column names (parcels), 
+    and index column as "subj", formatted as sub-{subject}_ses-{session} """
+    input:
+        dscalar=get_dscalar_nii,
         dlabel=bids(
             root=root,
             datatype="surf",
@@ -45,6 +62,7 @@ rule write_metrics_legacy_csv:
         "../scripts/write_surf_metrics_legacy.py"
 
 
+"""
 rule write_surf_metrics_long_csv:
     input:
         dscalars=expand(
@@ -133,6 +151,8 @@ rule write_surf_metrics_wide_csv:
         "subj"
     script:
         "../scripts/write_surf_metrics_wide.py"
+
+"""
 
 
 rule concat_subj_csv:

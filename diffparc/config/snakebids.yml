@@ -172,6 +172,25 @@ parse_args:
     help: 'Target percentage of original mesh vertices to remove, e.g. higher values result in lower number of vertices in template surface (default: %(default)s)'
     default: 80
 
+  --stat_along_tcks:
+    help: 'Statistic to use aggregating DTI metrics along each streamline (default: %(default)s)'
+    nargs: '?'
+    choices:
+      - 'mean'
+      - 'median'
+      - 'min'
+      - 'max'
+
+  --stat_across_tcks:
+    help: 'Statistic to use aggregating DTI metrics across streamlines at a vertex (default: %(default)s)'
+    nargs: '?'
+    choices:
+      - 'mean'
+      - 'median'
+      - 'min'
+      - 'max'
+
+
 #---- to update below this
 
 singularity:
@@ -419,7 +438,8 @@ hemi_to_structure:
 surface_metrics:
   - inout
   - surfarea
-
+  - FA
+  - MD
 
 #tractography parameters
 fod_algorithm: csd #msmt_csd
@@ -446,4 +466,6 @@ skip_dwi_preproc: False
 use_synthseg_seed: True
 use_synthseg_targets: False
 
+stat_along_tcks: 'mean'  
+stat_across_tcks: 'mean'
 

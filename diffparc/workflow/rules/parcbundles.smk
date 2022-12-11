@@ -1,7 +1,6 @@
-"""
+"""  
+    Note: This rule file is not currently used..
 
-    TODO: update this now with primary approach, which is to generate 
-    the sampledti surfaces.
 
      These rules create the streamline bundles that start from 
     a striatum parcellation, and reach the corresponding target, 
@@ -20,19 +19,8 @@
     (create_parc_tdi), which we can threshold and use to mask with e.g. an FA 
     or MD map..
 
-    An alternative approach could use tcksample to sample DTI 
-    metrics along each streamline, aggregate (mean?) along each streamline, then aggregate (mean?) 
-    across streamlines.
+"""
 
-    An even more granular approach could do this on each vertex instead of a parcel.
-
-
-   """ 
-    
-    
-    
-   
-    
 
 def get_tck_filename(wildcards):
     return bids(
@@ -173,54 +161,6 @@ rule create_parc_bundle:
         "  tckedit `cat {input.tcklist}` {output.bundle} -include {input.mask}; "
         "fi"
 
-rule sample_along_tck:
-    input:
-        bundle=bids(
-            root=root,
-            datatype="surf",
-            hemi="{hemi}",
-            desc="{targets}",
-            parc="{parc}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            suffix="bundle.tck",
-            **subj_wildcards,
-        ),
-        metric=bids(
-            root=root,
-            datatype="dwi",
-            suffix="{metric}.nii.gz",
-            **subj_wildcards,
-        ),
-    params:
-        stat_tck="-stat_tck {alongtck}" #whether to use min, max, mean, median
-    output:
-        sampletxt=bids(
-            root=root,
-            datatype="surf",
-            hemi="{hemi}",
-            desc="{targets}",
-            parc="{parc}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            metric="{metric}",
-            alongtck="{alongtck}",
-            suffix="sa.tck",
-            **subj_wildcards,
-        ),
-    group:
-        "subj"
-    container:
-        config["singularity"]["diffparc_deps"]
-    shell:
-        "if [ -s {input.bundle} ]; "
-        "then "
-        "   tcksample {input.bundle} {input.metric} {output.sampletxt} {params.stat_tck}; "
-        "else "
-        "   printf '#no tracts\nNaN\n' > {output.sampletxt}; "
-        "fi"
-
-
 
 rule create_parc_tdi:
     """tract density image for the parcel. if there are no streamlines,
@@ -322,172 +262,5 @@ rule threshold_tdi:
         #threshold
         #if no streamlines, just zero it out..
 
-
-rule calc_roi_fa:
-    input:
-        fa=bids(
-            root=root,
-            datatype="dwi",
-            suffix="FA.nii.gz",
-            **subj_wildcards,
-        ),
-        mask=bids(
-            root=root,
-            datatype="surf",
-            hemi="{hemi}",
-            desc="{targets}",
-            parc="{parc}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            suffix="tdimask.nii.gz",
-            **subj_wildcards,
-        ),
-    output:
-        tdimaskfa=bids(
-            root=root,
-            datatype="surf",
-            hemi="{hemi}",
-            desc="{targets}",
-            parc="{parc}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            suffix="tdimaskfa.nii.gz",
-            **subj_wildcards,
-        ),
-    group:
-        "subj"
-    container:
-        config["singularity"]["itksnap"]
-    shell:
-        "placeholder"
-
-
-rule tcksample_from_vertices:
-    """ sample dti metric from streamlines connected to each vertex """
-    input:
-        tck_dir=bids(
-            root=config["tmp_dir"],
-            datatype="surf",
-            hemi="{hemi}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            suffix="vertextracts",
-            **subj_wildcards,
-        ),
-        metric=bids(
-            root=root,
-            datatype="dwi",
-            suffix="{metric}.nii.gz",
-            **subj_wildcards,
-        ),
-    params:
-        stat_tck="-stat_tck {statsalong}" #whether to use min, max, mean, median
-    output:
-        sampledti_dir=temp(
-            directory(
-                bids(
-                    root=config["tmp_dir"],
-                    datatype="surf",
-                    hemi="{hemi}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    suffix="sampledti",
-                    metric="{metric}",
-                    statsalong="{statsalong}",
-                    **subj_wildcards,
-                )
-            )
-        ),
-    threads: 32
-    resources:
-        mem_mb=128000,
-        time=1440,
-    group:
-        "subj"
-    container:
-        config["singularity"]["diffparc_deps"]
-    shell:
-        "mkdir -p {output.sampledti_dir} && "
-        "parallel --eta --jobs {threads} "
-        "tcksample -nthreads 0 -quiet {input.tck_dir}/vertex_{{1}}.tck {input.metric} {output.sampledti_dir}/sample_{{1}}.txt {params.stat_tck}"
-        " ::: `ls {input.tck_dir} | grep -Po '(?<=vertex_)[0-9]+'`"
-
-
-rule sampledti_to_metric:
-    """converts the tcksample txt files to a gifti metric"""
-    input:
-        sampledti_dir=bids(
-                    root=config["tmp_dir"],
-                    datatype="surf",
-                    hemi="{hemi}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    suffix="sampledti",
-                    metric="{metric}",
-                    statsalong="{statsalong}",
-                    **subj_wildcards,
-        ),
-    output:
-        gii_metric=temp(bids(
-                    root=root,
-                    datatype="surf",
-                    hemi="{hemi}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    metric="{metric}",
-                    statsalong="{statsalong}",
-                    statsacross="{statsacross}",
-                    suffix="nostructsampledti.shape.gii",
-                    **subj_wildcards,
-        )),
-    group:
-        "subj"
-    container:
-        config["singularity"]["pythondeps"]
-    script:
-        "../scripts/tcksample_to_gifti_metric.py"
-
-
-rule set_structure_sampledti_metric:
-    input:
-        gii_metric=bids(
-                    root=root,
-                    datatype="surf",
-                    hemi="{hemi}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    metric="{metric}",
-                    statsalong="{statsalong}",
-                    statsacross="{statsacross}",
-                    suffix="nostructsampledti.shape.gii",
-                    **subj_wildcards,
-        ),        
-    params:
-        structure=lambda wildcards: config["hemi_to_structure"][wildcards.hemi],
-    output:
-        gii_metric=bids(
-                    root=root,
-                    datatype="surf",
-                    hemi="{hemi}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    metric="{metric}",
-                    statsalong="{statsalong}",
-                    statsacross="{statsacross}",
-                    suffix="sampledti.shape.gii",
-                    **subj_wildcards,
-        ),        
-    group:
-        "subj"
-    container:
-        config["singularity"]["autotop"]
-    shell:
-        "cp {input} {output} && "
-        "wb_command -set-structure {output} {params.structure}"
 
 

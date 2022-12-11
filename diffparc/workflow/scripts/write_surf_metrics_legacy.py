@@ -22,13 +22,15 @@ row = dict()
 # sets the index column as sub-{subject} or sub-{subject}_ses-{session}
 row[snakemake.params.index_col_name] = snakemake.params.index_col_value
 
-reduce_func_dict = {"inout": np.mean, "surfarea": np.sum}
-
 
 dlabel_nib = nib.load(snakemake.input.dlabel)
 dlabel_data = dlabel_nib.get_fdata().T
 metric = snakemake.wildcards.metric
 
+if metric == "surfarea":
+    reduce_func = np.sum
+else:
+    reduce_func = np.mean
 
 label_dict = dlabel_nib.header.get_axis(0).label[0]
 del label_dict[0]  # remove background label
@@ -52,21 +54,14 @@ for (brain_struct, data_indices, brain_model) in dscalar_nib.header.get_axis(
     for labelnum, (labelname, rgba) in label_dict.items():
 
         if np.any(label == labelnum):
-            value = reduce_func_dict[metric](
+            value = reduce_func(
                 scalar[label == labelnum]
-            )  # mean for inout, sum for surfarea
+            )  #  sum() for surfarea, mean() for everything else
         else:
             print(
                 f"warning: {labelname} is empty, subject={snakemake.wildcards.subject}, setting to 0"
             )
             value = 0
-
-        # if 'session' in snakemake.wildcards:
-        #    row['session'] = [snakemake.wildcards.session]
-        # else:
-        #    row['session'] = ['']
-
-        # col name will be,  {hemi}_{label}_{metric}
 
         row[f"{hemi}_{labelname}"] = [value]
 
