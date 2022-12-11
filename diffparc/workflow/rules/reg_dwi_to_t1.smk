@@ -1,14 +1,33 @@
 # if we skip dwi preproc, then we are loading dwi preproc in T1w space:
 
-
-if config["skip_dwi_preproc"]:
+if not config["in_prepdwi_dir"] == False:
 
     rule import_preproc_dwi:
         input:
-            dwi_files=[
-                re.sub(".nii.gz", ext, input_path["dwi"])
-                for ext in [".nii.gz", ".bval", ".bvec"]
-            ],
+            dwi_nii=bids(
+                root=config["in_prepdwi_dir"],
+                suffix="dwi_space-T1w_preproc.nii.gz",
+                datatype="dwi",
+                **subj_wildcards
+            ),
+            dwi_bval=bids(
+                root=config["in_prepdwi_dir"],
+                suffix="dwi_space-T1w_preproc.bval",
+                datatype="dwi",
+                **subj_wildcards
+            ),
+            dwi_bvec=bids(
+                root=config["in_prepdwi_dir"],
+                suffix="dwi_space-T1w_preproc.bvec",
+                datatype="dwi",
+                **subj_wildcards
+            ),
+            brainmask_nii=bids(
+                root=config["in_prepdwi_dir"],
+                suffix="dwi_space-T1w_brainmask.nii.gz",
+                datatype="dwi",
+                **subj_wildcards
+            ),
         output:
             dwi=expand(
                 bids(
@@ -23,22 +42,6 @@ if config["skip_dwi_preproc"]:
                 ext=[".nii.gz", ".bval", ".bvec"],
                 allow_missing=True,
             ),
-        group:
-            "subj"
-        run:
-            for in_file, out_file in zip(input, output):
-                shell("cp -v {in_file} {out_file}")
-
-
-    def get_preproc_brainmask(wildcards):
-        return re.sub(
-            "preproc.nii.gz", "brainmask.nii.gz", input_path["dwi"]
-        )  # TODO: make the search/replace configurable
-
-    rule import_preproc_brainmask:
-        input:
-            get_preproc_brainmask,
-        output:
             brainmask=bids(
                 root=root,
                 suffix="mask.nii.gz",
@@ -50,12 +53,13 @@ if config["skip_dwi_preproc"]:
             ),
         group:
             "subj"
-        shell:
-            "cp {input} {output}"
+        run:
+            for in_file, out_file in zip(input, output):
+                shell("cp -v {in_file} {out_file}")
+
+
+
 # just grab the first T1w for now:
-
-
-
 rule import_t1:
     input:
         lambda wildcards: expand(
@@ -393,7 +397,7 @@ rule create_cropped_ref_custom_resolution:
         "c3d {input} -resample-mm {params.resolution} {output}"
 
 
-if not config["skip_dwi_preproc"]:
+if config["in_prepdwi_dir"] == False:
 
     rule resample_dwi_to_t1w:
         input:

@@ -6,7 +6,7 @@ wildcard_constraints:
     dir="[a-zA-Z0-9]+",
 
 
-if not config["skip_dwi_preproc"]:
+if config["in_prepdwi_dir"] == False:
 
     rule import_dwi:
         input:
@@ -841,15 +841,7 @@ def get_dwi_ref(wildcards):
     filtered = snakebids.filter_list(input_zip_lists["dwi"], wildcards)
     num_scans = len(filtered["subject"])
 
-    if config["skip_dwi_preproc"]:
-        return bids(
-            root=root,
-            suffix="b0.nii.gz",
-            desc="preproc",
-            datatype="dwi",
-            **subj_wildcards,
-        )
-    elif num_scans > 1 and config["use_topup"]:
+    if num_scans > 1 and config["use_topup"]:
         return bids(
             root=root,
             suffix="b0.nii.gz",
@@ -1478,19 +1470,6 @@ rule eddymotion:
 
 # then need a rule to apply the transforms
 def get_preproc_dwi_input_dwispace(wildcards):
-    #    if config["skip_dwi_preproc"]:
-    #        # use input dwi image as preproc
-    #        return multiext(
-    #            bids(
-    #                root=root, suffix="dwi", desc="import", datatype="dwi", **subj_wildcards
-    #            ),
-    #            ".nii.gz",
-    #            ".bval",
-    #            ".bvec",
-    #            ".json",
-    #        )
-    #
-    #    else:
     if config["use_eddy"]:
         # use eddy dwi as preproc
         return multiext(

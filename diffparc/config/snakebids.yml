@@ -91,10 +91,10 @@ parse_args:
     nargs: '+'
 
 
-  --skip_dwi_preproc:
-    help: 'Skip dwi pre-processing, assuming preproc dwi is from prepdwi (must use --path-dwi to point to it) is pre-processed and already co-registered to the T1w image. (default: %(default)s)'
-    action: 'store_true'
+  --in_prepdwi_dir:
+    help: 'Skip dwi pre-processing and use preprocessing dwi and brainmask from prepdwi instead. (default: %(default)s)'
     default: False
+    type: Path
 
 
   --use_eddy:
@@ -469,3 +469,4 @@ use_synthseg_targets: False
 stat_along_tcks: 'mean'  
 stat_across_tcks: 'mean'
 
+in_prepdwi_dir: False
