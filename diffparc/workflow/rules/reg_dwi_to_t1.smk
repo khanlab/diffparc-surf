@@ -55,6 +55,7 @@ if config["skip_dwi_preproc"]:
 # just grab the first T1w for now:
 
 
+
 rule import_t1:
     input:
         lambda wildcards: expand(
@@ -541,6 +542,7 @@ if not config["skip_dwi_preproc"]:
             "{params.script} {input.bvecs} {input.xfm_fsl} {output.bvecs} && "
             "cp -v {input.bvals} {output.bvals}"
 # dti fitting on dwi in t1w space
+
 
 
 rule dtifit_resampled_t1w:
