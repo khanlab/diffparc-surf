@@ -3,10 +3,9 @@
     vertex using tcksample, aggregating along each streamline, then across 
     all streamlines at the vertex.
 
-   """ 
-    
-    
- 
+"""
+
+
 rule tcksample_from_vertices:
     """ sample dti metric from streamlines connected to each vertex """
     input:
@@ -26,7 +25,7 @@ rule tcksample_from_vertices:
             **subj_wildcards,
         ),
     params:
-        stat_tck="-stat_tck {statsalong}" #whether to use min, max, mean, median
+        stat_tck="-stat_tck {statsalong}",  #whether to use min, max, mean, median
     output:
         sampledti_dir=temp(
             directory(
@@ -55,7 +54,9 @@ rule tcksample_from_vertices:
     shell:
         "mkdir -p {output.sampledti_dir} && "
         "parallel --eta --jobs {threads} "
-        "tcksample -nthreads 0 -quiet {input.tck_dir}/vertex_{{1}}.tck {input.metric} {output.sampledti_dir}/sample_{{1}}.txt {params.stat_tck}"
+        "tcksample -nthreads 0 -quiet {input.tck_dir}/vertex_{{1}}.tck "
+        " {input.metric} {output.sampledti_dir}/sample_{{1}}.txt "
+        " {params.stat_tck} "
         " ::: `ls {input.tck_dir} | grep -Po '(?<=vertex_)[0-9]+'`"
 
 
@@ -63,31 +64,33 @@ rule sampledti_to_metric:
     """converts the tcksample txt files to a gifti metric"""
     input:
         sampledti_dir=bids(
-                    root=config["tmp_dir"],
-                    datatype="surf",
-                    hemi="{hemi}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    suffix="sampledti",
-                    metric="{metric}",
-                    statsalong="{statsalong}",
-                    **subj_wildcards,
+            root=config["tmp_dir"],
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="sampledti",
+            metric="{metric}",
+            statsalong="{statsalong}",
+            **subj_wildcards,
         ),
     output:
-        gii_metric=temp(bids(
-                    root=root,
-                    datatype="surf",
-                    hemi="{hemi}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    metric="{metric}",
-                    statsalong="{statsalong}",
-                    statsacross="{statsacross}",
-                    suffix="nostructsampledti.shape.gii",
-                    **subj_wildcards,
-        )),
+        gii_metric=temp(
+            bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                metric="{metric}",
+                statsalong="{statsalong}",
+                statsacross="{statsacross}",
+                suffix="nostructsampledti.shape.gii",
+                **subj_wildcards,
+            )
+        ),
     group:
         "subj"
     container:
@@ -99,34 +102,34 @@ rule sampledti_to_metric:
 rule set_structure_sampledti_metric:
     input:
         gii_metric=bids(
-                    root=root,
-                    datatype="surf",
-                    hemi="{hemi}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    metric="{metric}",
-                    statsalong="{statsalong}",
-                    statsacross="{statsacross}",
-                    suffix="nostructsampledti.shape.gii",
-                    **subj_wildcards,
-        ),        
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            metric="{metric}",
+            statsalong="{statsalong}",
+            statsacross="{statsacross}",
+            suffix="nostructsampledti.shape.gii",
+            **subj_wildcards,
+        ),
     params:
         structure=lambda wildcards: config["hemi_to_structure"][wildcards.hemi],
     output:
         gii_metric=bids(
-                    root=root,
-                    datatype="surf",
-                    hemi="{hemi}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    metric="{metric}",
-                    statsalong="{statsalong}",
-                    statsacross="{statsacross}",
-                    suffix="sampledti.shape.gii",
-                    **subj_wildcards,
-        ),        
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            metric="{metric}",
+            statsalong="{statsalong}",
+            statsacross="{statsacross}",
+            suffix="sampledti.shape.gii",
+            **subj_wildcards,
+        ),
     group:
         "subj"
     container:
@@ -136,40 +139,48 @@ rule set_structure_sampledti_metric:
         "wb_command -set-structure {output} {params.structure}"
 
 
-
 def get_gifti_metrics_sampledti(wildcards):
-    files=dict()
-    files['left_metric']=bids(
-            root=root,
-            datatype="surf",
-            hemi="L",
-            desc="{targets}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            metric="{metric}",
-            statsalong="{statsalong}",
-            statsacross="{statsacross}",
-            suffix="sampledti.shape.gii",
-            **subj_wildcards,
-        ).format(**wildcards, statsalong=config['stat_along_tcks'],statsacross=config['stat_across_tcks'])
-    files['right_metric']=bids(
-            root=root,
-            datatype="surf",
-            hemi="R",
-            desc="{targets}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            metric="{metric}",
-            statsalong="{statsalong}",
-            statsacross="{statsacross}",
-            suffix="sampledti.shape.gii",
-            **subj_wildcards,
-        ).format(**wildcards, statsalong=config['stat_along_tcks'],statsacross=config['stat_across_tcks'])
+    files = dict()
+    files["left_metric"] = bids(
+        root=root,
+        datatype="surf",
+        hemi="L",
+        desc="{targets}",
+        label="{seed}",
+        seedspervertex="{seedspervertex}",
+        metric="{metric}",
+        statsalong="{statsalong}",
+        statsacross="{statsacross}",
+        suffix="sampledti.shape.gii",
+        **subj_wildcards,
+    ).format(
+        **wildcards,
+        statsalong=config["stat_along_tcks"],
+        statsacross=config["stat_across_tcks"],
+    )
+    files["right_metric"] = bids(
+        root=root,
+        datatype="surf",
+        hemi="R",
+        desc="{targets}",
+        label="{seed}",
+        seedspervertex="{seedspervertex}",
+        metric="{metric}",
+        statsalong="{statsalong}",
+        statsacross="{statsacross}",
+        suffix="sampledti.shape.gii",
+        **subj_wildcards,
+    ).format(
+        **wildcards,
+        statsalong=config["stat_along_tcks"],
+        statsacross=config["stat_across_tcks"],
+    )
     return files
 
 
 rule create_cifti_sampledti_dscalar:
-    input:  unpack(get_gifti_metrics_sampledti)
+    input:
+        unpack(get_gifti_metrics_sampledti),
     output:
         cifti_dscalar=bids(
             root=root,
@@ -186,6 +197,3 @@ rule create_cifti_sampledti_dscalar:
         config["singularity"]["autotop"]
     shell:
         "wb_command -cifti-create-dense-scalar {output} -left-metric {input.left_metric} -right-metric {input.right_metric}"
-
-
-

@@ -48,7 +48,8 @@ rule create_parc_tcklist:
         ),
     params:
         tck_filename=get_tck_filename,
-        label_num=lambda wildcards: config["targets"][wildcards.targets][  #gets label number from the parc name, with 1-based indexing
+        #gets label number from the parc name, with 1-based indexing
+        label_num=lambda wildcards: config["targets"][wildcards.targets][
             "labels"
         ].index(wildcards.parc)
         + 1,
@@ -261,6 +262,3 @@ rule threshold_tdi:
         "fi"
         #threshold
         #if no streamlines, just zero it out..
-
-
-

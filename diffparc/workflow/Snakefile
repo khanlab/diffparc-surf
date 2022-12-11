@@ -259,7 +259,6 @@ rule all_legacy_csv:
         ),
 
 
-
 rule all_subj_tables_legacy:
     input:
         csv=expand(
