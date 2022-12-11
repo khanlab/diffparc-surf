@@ -162,8 +162,8 @@ parse_args:
       - 'msmt_csd '
     default: 'csd'
 
-  --seeds_per_voxel:
-    help: 'Number of streamline seeds per voxel  (default: %(default)s)'
+  --seeds_per_vertex:
+    help: 'Number of streamline seeds per vertex  (default: %(default)s)'
     nargs: '+'
     default: 
       - 500
