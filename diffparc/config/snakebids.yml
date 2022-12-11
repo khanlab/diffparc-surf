@@ -92,7 +92,7 @@ parse_args:
 
 
   --skip_dwi_preproc:
-    help: 'Skip dwi pre-processing. Assumes dwi loaded is pre-processed and already co-registered to the T1w image (default: %(default)s)'
+    help: 'Skip dwi pre-processing, assuming preproc dwi is from prepdwi (must use --path-dwi to point to it) is pre-processed and already co-registered to the T1w image. (default: %(default)s)'
     action: 'store_true'
     default: False
 
