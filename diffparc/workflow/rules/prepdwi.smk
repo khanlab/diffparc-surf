@@ -6,7 +6,7 @@ wildcard_constraints:
     dir="[a-zA-Z0-9]+",
 
 
-if config["in_prepdwi_dir"] == False:
+if (config["in_prepdwi_dir"] == False) and (config["in_snakedwi_dir"] == False):
 
     rule import_dwi:
         input:

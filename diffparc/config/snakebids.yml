@@ -92,9 +92,15 @@ parse_args:
 
 
   --in_prepdwi_dir:
-    help: 'Skip dwi pre-processing and use preprocessing dwi and brainmask from prepdwi instead. (default: %(default)s)'
+    help: 'Skip dwi pre-processing and use preprocessing dwi, brainmask, and bedpost, from prepdwi instead. Specify the prepdwi directory that contains the work and prepdwi sub-directories. (default: %(default)s)'
     default: False
     type: Path
+
+  --in_snakedwi_dir:
+    help: 'Skip dwi pre-processing and use preprocessing dwi, brainmask, and bedpost, from snakedwi instead. Specify the snakedwi directory that contains the sub-* directories. (default: %(default)s)'
+    default: False
+    type: Path
+
 
 
   --use_eddy:
@@ -472,3 +478,4 @@ stat_along_tcks: 'mean'
 stat_across_tcks: 'mean'
 
 in_prepdwi_dir: False
+in_snakedwi_dir: False
