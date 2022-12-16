@@ -59,6 +59,7 @@ if config["in_prepdwi_dir"]:
 
 
 
+
 elif config["in_snakedwi_dir"]:
 
     rule import_snakedwi_dwi:
@@ -280,6 +281,7 @@ else:
             "{params.script} {input.bvecs} {input.xfm_fsl} {output.bvecs} && "
             "cp -v {input.bvals} {output.bvals}"
 # just grab the first T1w for now:
+
 
 
 rule import_t1:
