@@ -143,7 +143,7 @@ rule run_probtrack_surface:
             **subj_wildcards,
             hemi="{hemi}",
             space="individual",
-            from_="{template}",
+            from_=config["template"],
             datatype="surf",
             suffix="{seed}.surf.gii"
         ),
@@ -158,7 +158,7 @@ rule run_probtrack_surface:
             **subj_wildcards
         ),
     params:
-        seeds_per_vertex=config['seeds_per_vertex']
+        seeds_per_vertex="{seedspervertex}",
     output:
         out_tract_dir=directory(bids(
             root=root,
@@ -166,12 +166,20 @@ rule run_probtrack_surface:
             hemi="{hemi}",
             label="{seed}",
             desc='{targets}',
-            from_="{template}",
+            seedspervertex="{seedspervertex}",
             datatype="surf",
             suffix="probtrack"
+        )),
+        out_conn_txt=bids(
+            root=root,
+            **subj_wildcards,
+            hemi="{hemi}",
+            label="{seed}",
+            desc='{targets}',
+            seedspervertex="{seedspervertex}",
+            datatype="surf",
+            suffix="probtrack/matrix_seeds_to_all_targets"
         ),
-
-)
     group: 'subj'
     shell:
         "probtrackx2 "
@@ -190,4 +198,33 @@ rule run_probtrack_surface:
         " -l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 "
         " -P {params.seeds_per_vertex} --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 "
 
-
+rule create_conn_csv_probtrack:
+    input:
+        conn_txt=bids(
+            root=root,
+            **subj_wildcards,
+            hemi="{hemi}",
+            label="{seed}",
+            desc='{targets}',
+            seedspervertex="{seedspervertex}",
+            datatype="surf",
+            suffix="probtrack/matrix_seeds_to_all_targets"
+        ),
+    params:
+        col_headers = lambda wildcards: config["targets"][wildcards.targets]["labels"]
+    output:
+        conn_csv=bids(
+            root=root,
+            **subj_wildcards,
+            hemi="{hemi}",
+            desc='{targets}',
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method='fslprobtrack',
+            datatype="surf",
+            suffix="conn.csv"
+        ),
+    group: 'subj'
+    container: config["singularity"]["pythondeps"]
+    script: '../scripts/probtrack_matrix_to_csv.py'
+        

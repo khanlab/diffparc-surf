@@ -444,10 +444,15 @@ hemi_to_structure:
   R: CORTEX_RIGHT
 
 surface_metrics:
-  - inout
+  #- inout
   - surfarea
-  - FA
-  - MD
+    #  - FA
+    #  - MD
+
+methods:
+  - mrtrix
+  - fslprobtrack
+
 
 #tractography parameters
 fod_algorithm: csd #msmt_csd
@@ -479,3 +484,5 @@ stat_across_tcks: 'mean'
 
 in_prepdwi_dir: False
 in_snakedwi_dir: False
+
+

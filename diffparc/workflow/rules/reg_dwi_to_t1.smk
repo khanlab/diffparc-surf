@@ -75,7 +75,7 @@ elif config['in_snakedwi_dir']:
                 space='T1w',
                 res=config["resample_dwi"]["resample_scheme"],
                 desc='eddy',
-                suffix="dwi.nii.gz",
+                suffix="dwi.bval",
                 datatype="dwi",
                 **subj_wildcards
             ),
@@ -84,7 +84,7 @@ elif config['in_snakedwi_dir']:
                 space='T1w',
                 res=config["resample_dwi"]["resample_scheme"],
                 desc='eddy',
-                suffix="dwi.nii.gz",
+                suffix="dwi.bvec",
                 datatype="dwi",
                 **subj_wildcards
             ),
