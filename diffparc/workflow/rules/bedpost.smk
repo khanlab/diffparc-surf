@@ -1,16 +1,22 @@
-
-
-if config['in_prepdwi_dir']:
+if config["in_prepdwi_dir"]:
 
     def get_bedpost_dir_from_prepdwi(wildcards):
-        sub_ses_dir = bids(**subj_wildcards,include_subject_dir=False,include_session_dir=False)
-        bedpost_dir = os.path.join(config['in_prepdwi_dir'],'work',sub_ses_dir,'dwi','uncorrected_denoise_unring_eddy_regT1','bedpost.bedpostX')
+        sub_ses_dir = bids(
+            **subj_wildcards, include_subject_dir=False, include_session_dir=False
+        )
+        bedpost_dir = os.path.join(
+            config["in_prepdwi_dir"],
+            "work",
+            sub_ses_dir,
+            "dwi",
+            "uncorrected_denoise_unring_eddy_regT1",
+            "bedpost.bedpostX",
+        )
         return bedpost_dir.format(**wildcards)
 
-    
-    rule copy_bedpost_dir_from_prepdwi:    
+    rule copy_bedpost_dir_from_prepdwi:
         input:
-            bedpost_dir=get_bedpost_dir_from_prepdwi
+            bedpost_dir=get_bedpost_dir_from_prepdwi,
         output:
             bedpost_dir=directory(
                 bids(
@@ -29,22 +35,19 @@ if config['in_prepdwi_dir']:
             "cp -R {input.bedpost_dir} {output.bedpost_dir}"
 
 
-
-
-elif config['in_snakedwi_dir']:
-
+elif config["in_snakedwi_dir"]:
 
     rule copy_bedpost_dir_from_snakedwi:
         input:
             bedpost_dir=bids(
-                root=config['in_snakedwi_dir'],
+                root=config["in_snakedwi_dir"],
                 desc="eddy",
                 suffix="diffusion.bedpostX",
                 space="T1w",
                 res=config["resample_dwi"]["resample_scheme"],
                 datatype="dwi",
                 **subj_wildcards
-            )
+            ),
         output:
             bedpost_dir=directory(
                 bids(
@@ -64,6 +67,7 @@ elif config['in_snakedwi_dir']:
 
 
 else:
+
     rule copy_inputs_for_bedpost:
         input:
             dwi=bids(
@@ -102,7 +106,6 @@ else:
                 datatype="dwi",
                 **subj_wildcards
             ),
-
         output:
             diff_dir=directory(
                 bids(
@@ -188,7 +191,6 @@ else:
             return ""
         else:
             return f"-P {threads}"
-
 
     rule run_bedpost:
         input:
@@ -277,5 +279,3 @@ else:
             "rm -rf {input.diff_dir}"
             #remove the logs to reduce # of files  
             # remove the input dir (copy of files) 
-
-

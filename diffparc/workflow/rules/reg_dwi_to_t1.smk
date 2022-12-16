@@ -5,25 +5,25 @@ if config["in_prepdwi_dir"]:
     rule import_prepdwi_dwi:
         input:
             dwi_nii=bids(
-                root=os.path.join(config["in_prepdwi_dir"]+'prepdwi'),
+                root=os.path.join(config["in_prepdwi_dir"] + "prepdwi"),
                 suffix="dwi_space-T1w_preproc.nii.gz",
                 datatype="dwi",
                 **subj_wildcards
             ),
             dwi_bval=bids(
-                root=os.path.join(config["in_prepdwi_dir"]+'prepdwi'),
+                root=os.path.join(config["in_prepdwi_dir"] + "prepdwi"),
                 suffix="dwi_space-T1w_preproc.bval",
                 datatype="dwi",
                 **subj_wildcards
             ),
             dwi_bvec=bids(
-                root=os.path.join(config["in_prepdwi_dir"]+'prepdwi'),
+                root=os.path.join(config["in_prepdwi_dir"] + "prepdwi"),
                 suffix="dwi_space-T1w_preproc.bvec",
                 datatype="dwi",
                 **subj_wildcards
             ),
             brainmask_nii=bids(
-                root=os.path.join(config["in_prepdwi_dir"]+'prepdwi'),
+                root=os.path.join(config["in_prepdwi_dir"] + "prepdwi"),
                 suffix="dwi_space-T1w_brainmask.nii.gz",
                 datatype="dwi",
                 **subj_wildcards
@@ -57,33 +57,35 @@ if config["in_prepdwi_dir"]:
             for in_file, out_file in zip(input, output):
                 shell("cp -v {in_file} {out_file}")
 
-elif config['in_snakedwi_dir']:
+
+
+elif config["in_snakedwi_dir"]:
 
     rule import_snakedwi_dwi:
         input:
             dwi_nii=bids(
                 root=config["in_snakedwi_dir"],
-                space='T1w',
+                space="T1w",
                 res=config["resample_dwi"]["resample_scheme"],
-                desc='eddy',
+                desc="eddy",
                 suffix="dwi.nii.gz",
                 datatype="dwi",
                 **subj_wildcards
             ),
             dwi_bval=bids(
                 root=config["in_snakedwi_dir"],
-                space='T1w',
+                space="T1w",
                 res=config["resample_dwi"]["resample_scheme"],
-                desc='eddy',
+                desc="eddy",
                 suffix="dwi.bval",
                 datatype="dwi",
                 **subj_wildcards
             ),
             dwi_bvec=bids(
                 root=config["in_snakedwi_dir"],
-                space='T1w',
+                space="T1w",
                 res=config["resample_dwi"]["resample_scheme"],
-                desc='eddy',
+                desc="eddy",
                 suffix="dwi.bvec",
                 datatype="dwi",
                 **subj_wildcards
@@ -91,9 +93,9 @@ elif config['in_snakedwi_dir']:
             brainmask_nii=bids(
                 root=config["in_snakedwi_dir"],
                 suffix="mask.nii.gz",
-                space='T1w',
+                space="T1w",
                 res=config["resample_dwi"]["resample_scheme"],
-                desc='brain',
+                desc="brain",
                 datatype="dwi",
                 **subj_wildcards
             ),
@@ -125,6 +127,8 @@ elif config['in_snakedwi_dir']:
         run:
             for in_file, out_file in zip(input, output):
                 shell("cp -v {in_file} {out_file}")
+
+
 
 
 else:
@@ -177,7 +181,6 @@ else:
             "subj"
         shell:
             "antsApplyTransforms -d 3 --input-image-type 3 --input {input.dwi} --reference-image {input.ref} --transform {input.xfm_itk} --interpolation {params.interpolation} --output {output.dwi} --verbose "
-
 
     rule resample_brainmask_to_t1w:
         input:
@@ -276,10 +279,9 @@ else:
             "chmod a+x {params.script} && "
             "{params.script} {input.bvecs} {input.xfm_fsl} {output.bvecs} && "
             "cp -v {input.bvals} {output.bvals}"
-
-
-
 # just grab the first T1w for now:
+
+
 rule import_t1:
     input:
         lambda wildcards: expand(
@@ -616,8 +618,8 @@ rule create_cropped_ref_custom_resolution:
     shell:
         "c3d {input} -resample-mm {params.resolution} {output}"
 
-# dti fitting on dwi in t1w space
 
+# dti fitting on dwi in t1w space
 
 
 rule dtifit_resampled_t1w:
