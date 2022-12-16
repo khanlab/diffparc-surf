@@ -430,15 +430,17 @@ rule create_cifti_conn_dscalar_maxprob:
             **subj_wildcards,
         ),
     output:
-        cifti_dscalar=bids(
-            root=root,
-            datatype="surf",
-            desc="{targets}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            method="{method}",
-            suffix="maxprob.dscalar.nii",
-            **subj_wildcards,
+        cifti_dscalar=temp(
+            bids(
+                root=root,
+                datatype="surf",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                method="{method}",
+                suffix="maxprob.dscalar.nii",
+                **subj_wildcards,
+            )
         ),
     group:
         "subj"
@@ -448,7 +450,86 @@ rule create_cifti_conn_dscalar_maxprob:
         "wb_command -cifti-reduce {input} INDEXMAX {output}"
 
 
-# need to then convert that into a label, then can use parcellate
+rule create_cifti_sumconn_dscalar:
+    """ sum up connectivity at a voxel across targets, will be used to threshold"""
+    input:
+        cifti_dscalar=bids(
+            root=root,
+            datatype="surf",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="{method}",
+            suffix="conn.dscalar.nii",
+            **subj_wildcards,
+        ),
+    output:
+        cifti_dscalar=temp(
+            bids(
+                root=root,
+                datatype="surf",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                method="{method}",
+                suffix="sumconn.dscalar.nii",
+                **subj_wildcards,
+            )
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["autotop"]
+    shell:
+        "wb_command -cifti-reduce {input} SUM {output}"
+
+
+rule mask_maxprob_by_sumconn_threshold:
+    """ use fraction of connectivity to threshold """
+    input:
+        maxprob=bids(
+            root=root,
+            datatype="surf",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="{method}",
+            suffix="maxprob.dscalar.nii",
+            **subj_wildcards,
+        ),
+        sumconn=bids(
+            root=root,
+            datatype="surf",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="{method}",
+            suffix="sumconn.dscalar.nii",
+            **subj_wildcards,
+        ),
+    params:
+        threshold=lambda wildcards: float(wildcards.seedspervertex) * 0.1,  # 10% of total streamlines
+    output:
+        masked=temp(
+            bids(
+                root=root,
+                datatype="surf",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                method="{method}",
+                suffix="maskedmaxprob.dscalar.nii",
+                **subj_wildcards,
+            )
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["autotop"]
+    shell:
+        "wb_command -cifti-math '(SUMCONN > {params.threshold}) * MAXPROB' {output.masked} -var SUMCONN {input.sumconn} -var MAXPROB {input.maxprob}"
+
+
 rule create_cifti_maxprob_dlabel:
     input:
         cifti_dscalar=bids(
@@ -458,7 +539,7 @@ rule create_cifti_maxprob_dlabel:
             label="{seed}",
             seedspervertex="{seedspervertex}",
             method="{method}",
-            suffix="maxprob.dscalar.nii",
+            suffix="maskedmaxprob.dscalar.nii",
             **subj_wildcards,
         ),
         label_list_txt=lambda wildcards: os.path.join(
