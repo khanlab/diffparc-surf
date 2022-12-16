@@ -322,7 +322,7 @@ template_use_dseg: False
 
 targets:
   harvardoxford7:
-    template_dseg: resources/tpl-{template}/HarvardOxford/CorticalTargets.striatum_withRostralMotor.nii.gz
+    template_dseg: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/CorticalTargets.striatum_withRostralMotor.nii.gz
     labels:
       - Limbic
       - Executive
@@ -332,11 +332,30 @@ targets:
       - Occipital
       - Temporal
     label_list_txt: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/label_list_harvardoxford7.txt
+  harvardoxford6:
+    template_dseg: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/CorticalTargets.striatum_withRostralMotor_rmTemporal.nii.gz
+    labels:
+      - Limbic
+      - Executive
+      - Rostral_motor
+      - Caudal_motor
+      - Parietal
+      - Occipital
+    label_list_txt: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/label_list_harvardoxford6.txt
 
 seeds:
   striatum:
-    template_probseg: resources/tpl-{template}/CIT168_prob/striatum_hemi-{hemi}_probseg.nii.gz
+    template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/striatum_hemi-{hemi}_probseg.nii.gz
     probseg_threshold: 0.5
+    surface_decimate_percent: 80
+    use_synthseg: True 
+  vtasnc:
+    template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/vtasnc_hemi-{hemi}_probseg.nii.gz
+    probseg_threshold: 0.5
+    surface_decimate_percent: 0
+    use_synthseg: False
+
+
 
 synthseg_labels:
   striatum:
@@ -476,7 +495,7 @@ eddy_no_s2v: True
 use_eddy: False
 use_topup: False
 skip_dwi_preproc: False
-use_synthseg_seed: True
+
 use_synthseg_targets: False
 
 stat_along_tcks: 'mean'  

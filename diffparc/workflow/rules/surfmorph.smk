@@ -17,7 +17,9 @@ rule gen_template_surface:
         ),
     params:
         threshold=lambda wildcards: config["seeds"][wildcards.seed]["probseg_threshold"],
-        decimate_percent=config["surface_decimate_percent"],
+        decimate_percent=lambda wildcards: config["seeds"][wildcards.seed][
+            "surface_decimate_percent"
+        ],
     output:
         surf_gii=temp(
             get_template_prefix(
@@ -56,7 +58,7 @@ rule set_surface_structure:
 
 
 def get_subject_seg_for_shapereg(wildcards):
-    if config["use_synthseg_seed"]:
+    if config["seeds"][wildcards.seed]["use_synthseg"]:
         return (
             bids(
                 root=root,
