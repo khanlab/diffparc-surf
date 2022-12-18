@@ -3,13 +3,15 @@ import numpy as np
 
 conn = np.loadtxt(snakemake.input.csv, delimiter=",", skiprows=1)
 
-#pre-normalize connectivity if enabled:
+# pre-normalize connectivity if enabled:
 if snakemake.params.normalize_percentile:
     for j in range(conn.shape[1]):
-        
-        norm_by = np.percentile(conn[:,j],snakemake.params.normalize_percentile)
-        seeds_per_vertex = snakemake.params.seeds_per_vertex #to rescale back after normalizing
-        conn[:,j] = conn[:,j] / norm_by * seeds_per_vertex
+
+        norm_by = np.percentile(conn[:, j], snakemake.params.normalize_percentile)
+        seeds_per_vertex = (
+            snakemake.params.seeds_per_vertex
+        )  # to rescale back after normalizing
+        conn[:, j] = conn[:, j] / norm_by * seeds_per_vertex
 
 
 conn_darray = nib.gifti.GiftiDataArray(

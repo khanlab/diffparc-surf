@@ -317,8 +317,10 @@ rule conn_csv_to_metric:
             **subj_wildcards,
         ),
     params:
-        normalize_percentile = lambda wildcards: config['seeds'][wildcards.seed]['normalize_percentile'],
-        seeds_per_vertex = lambda wildcards: float(wildcards.seedspervertex)
+        normalize_percentile=lambda wildcards: config["seeds"][wildcards.seed][
+            "normalize_percentile"
+        ],
+        seeds_per_vertex=lambda wildcards: float(wildcards.seedspervertex),
     output:
         gii_metric=temp(
             bids(
@@ -511,7 +513,9 @@ rule mask_maxprob_by_sumconn_threshold:
             **subj_wildcards,
         ),
     params:
-        threshold=lambda wildcards: config['seeds'][wildcards.seed]['streamline_threshold'],
+        threshold=lambda wildcards: config["seeds"][wildcards.seed][
+            "streamline_threshold"
+        ],
     output:
         masked=temp(
             bids(

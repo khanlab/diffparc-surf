@@ -262,43 +262,44 @@ rule all_legacy_csv:
 
 
 def get_subj_tables_legacy():
-    csvs=[]
-    for seed in config['select_seeds']:
-         csvs.extend(expand(
+    csvs = []
+    for seed in config["select_seeds"]:
+        csvs.extend(
             expand(
-                bids(
-                    root=root,
-                    datatype="tabular",
-                    from_="{template}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    method="{method}",
-                    form="{form}",
-                    suffix="{suffix}.csv",
-                    **subj_wildcards,
+                expand(
+                    bids(
+                        root=root,
+                        datatype="tabular",
+                        from_="{template}",
+                        desc="{targets}",
+                        label="{seed}",
+                        seedspervertex="{seedspervertex}",
+                        method="{method}",
+                        form="{form}",
+                        suffix="{suffix}.csv",
+                        **subj_wildcards,
+                    ),
+                    template=config["template"],
+                    hemi=config["hemispheres"],
+                    seed=seed,
+                    targets=config["seeds"][seed]["targets"],
+                    seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
+                    method=config["methods"],
+                    form=["legacy"],
+                    suffix=config["surface_metrics"],
+                    allow_missing=True,
                 ),
-                template=config["template"],
-                hemi=config["hemispheres"],
-                seed=seed,
-                targets=config["seeds"][seed]["targets"],
-                seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
-                method=config["methods"],
-                form=["legacy"],
-                suffix=config["surface_metrics"],
-                allow_missing=True,
-            ),
-            zip,
-            **subj_zip_list,
-        ))
+                zip,
+                **subj_zip_list,
+            )
+        )
     return csvs
-
-   
 
 
 rule all_subj_tables_legacy:
     input:
-        get_subj_tables_legacy()
+        get_subj_tables_legacy(),
+
 
 rule all:
     input:
