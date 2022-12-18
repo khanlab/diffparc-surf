@@ -43,6 +43,7 @@ rule create_parc_tcklist:
             desc="{targets}",
             label="{seed}",
             seedspervertex="{seedspervertex}",
+            method="mrtrix",
             suffix="maxprob.label.gii",
             **subj_wildcards,
         ),
@@ -75,35 +76,6 @@ rule create_parc_tcklist:
         "../scripts/create_parc_tcklist.py"
 
 
-rule extract_target_mask:
-    input:
-        dseg=get_dseg_targets_nii,
-    params:
-        label_num=lambda wildcards: config["targets"][wildcards.targets][
-            "labels"
-        ].index(wildcards.parc)
-        + 1,
-        #start at 1
-    output:
-        mask=temp(
-            bids(
-                root=root,
-                **subj_wildcards,
-                space="individual",
-                desc="{targets}",
-                parc="{parc}",
-                datatype="anat",
-                suffix="mask.nii.gz"
-            )
-        ),
-    container:
-        config["singularity"]["itksnap"]
-    group:
-        "subj"
-    shell:
-        "c3d {input.dseg} -retain-labels {params.label_num} -binarize -o {output.mask}"
-
-
 rule create_parc_bundle:
     """ create parc bundle from list of streamlines connected to the region.
     if there are no streamlines, then we simply touch the file - the next
@@ -133,8 +105,9 @@ rule create_parc_bundle:
             root=root,
             **subj_wildcards,
             space="individual",
-            desc="{targets}",
-            parc="{parc}",
+            targets="{targets}",
+            desc="{parc}",
+            from_=config["template"],
             datatype="anat",
             suffix="mask.nii.gz"
         ),
@@ -262,3 +235,32 @@ rule threshold_tdi:
         "fi"
         #threshold
         #if no streamlines, just zero it out..
+
+
+rule concat_all_streamlines:
+    input:
+        tck_dir=bids(
+            root=config["tmp_dir"],
+            datatype="surf",
+            hemi="{hemi}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="vertextracts",
+            **subj_wildcards,
+        ),
+    output:
+        bundle=bids(
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="bundle.tck",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["diffparc_deps"]
+    shell:
+        "tckedit `ls {input}/*.tck` {output.bundle}"
