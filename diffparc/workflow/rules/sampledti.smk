@@ -15,7 +15,6 @@ rule tcksample_from_vertices:
             hemi="{hemi}",
             label="{seed}",
             seedspervertex="{seedspervertex}",
-            method="mrtrix",
             suffix="vertextracts",
             **subj_wildcards,
         ),
