@@ -322,7 +322,7 @@ template_use_dseg: False
 
 targets:
   harvardoxford7:
-    template_dseg: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/CorticalTargets.striatum_withRostralMotor.nii.gz
+    template_dseg: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/CorticalTargets.harvardoxford7.nii.gz
     labels:
       - Limbic
       - Executive
@@ -333,7 +333,7 @@ targets:
       - Temporal
     label_list_txt: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/label_list_harvardoxford7.txt
   harvardoxford6:
-    template_dseg: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/CorticalTargets.striatum_withRostralMotor_rmTemporal.nii.gz
+    template_dseg: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/CorticalTargets.harvardoxford6.nii.gz
     labels:
       - Limbic
       - Executive
@@ -342,6 +342,26 @@ targets:
       - Parietal
       - Occipital
     label_list_txt: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/label_list_harvardoxford6.txt
+  harvardoxford3:
+    template_dseg: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/CorticalTargets.harvardoxford3.nii.gz
+    labels:
+      - Executive
+      - Rostral_motor
+      - Caudal_motor
+    label_list_txt: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/label_list_harvardoxford3.txt
+  harvardoxford4:
+    template_dseg: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/CorticalTargets.harvardoxford4.nii.gz
+    labels:
+      - Limbic
+      - Executive
+      - Rostral_motor
+      - Caudal_motor
+    label_list_txt: resources/tpl-MNI152NLin2009cAsym/HarvardOxford/label_list_harvardoxford4.txt
+
+
+select_seeds:
+  - striatum
+  - vtasnc
 
 seeds:
   striatum:
@@ -349,13 +369,23 @@ seeds:
     probseg_threshold: 0.5
     surface_decimate_percent: 80
     use_synthseg: True 
+    targets:
+      - harvardoxford6
+    streamline_threshold: 50
+    seeds_per_vertex:
+      - 500
+    normalize_percentile: False
   vtasnc:
     template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/vtasnc_hemi-{hemi}_probseg.nii.gz
     probseg_threshold: 0.5
     surface_decimate_percent: 0
     use_synthseg: False
-
-
+    targets: 
+      - harvardoxford4
+    streamline_threshold: 20
+    seeds_per_vertex:
+      - 500
+    normalize_percentile: 95 #normalize connectivity to each target before maxprob
 
 synthseg_labels:
   striatum:
@@ -367,6 +397,7 @@ synthseg_labels:
       - 50
       - 51
       - 58
+
 
 synthseg_targets:
   Limbic:
@@ -463,14 +494,15 @@ hemi_to_structure:
   R: CORTEX_RIGHT
 
 surface_metrics:
-  #- inout
+  #  - inout
   - surfarea
-    #  - FA
-    #  - MD
+  - indepconn
+    # - FA
+    # - MD
 
 methods:
   - mrtrix
-  - fslprobtrack
+    #  - fslprobtrack
 
 
 #tractography parameters

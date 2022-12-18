@@ -261,9 +261,10 @@ rule all_legacy_csv:
         ),
 
 
-rule all_subj_tables_legacy:
-    input:
-        csv=expand(
+def get_subj_tables_legacy():
+    csvs=[]
+    for seed in config['select_seeds']:
+         csvs.extend(expand(
             expand(
                 bids(
                     root=root,
@@ -279,9 +280,9 @@ rule all_subj_tables_legacy:
                 ),
                 template=config["template"],
                 hemi=config["hemispheres"],
-                seed=config["seeds"].keys(),
-                targets=config["targets"].keys(),
-                seedspervertex=config["seeds_per_vertex"],
+                seed=seed,
+                targets=config["seeds"][seed]["targets"],
+                seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
                 method=config["methods"],
                 form=["legacy"],
                 suffix=config["surface_metrics"],
@@ -289,8 +290,15 @@ rule all_subj_tables_legacy:
             ),
             zip,
             **subj_zip_list,
-        ),
+        ))
+    return csvs
 
+   
+
+
+rule all_subj_tables_legacy:
+    input:
+        get_subj_tables_legacy()
 
 rule all:
     input:

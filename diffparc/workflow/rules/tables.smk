@@ -64,6 +64,60 @@ rule write_surf_metrics_legacy_csv:
     script:
         "../scripts/write_surf_metrics_legacy.py"
 
+rule write_indepconn_metric_csv:
+    """ this reads in the raw connectivity
+    before normalization, and calculates the
+    mean number of streamlines to each target
+    from non-zero values"""
+    input:
+        csv_left=bids(
+            root=root,
+            datatype="surf",
+            hemi="L",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="{method}",
+            suffix="conn.csv",
+            **subj_wildcards,
+        ),
+        csv_right=bids(
+            root=root,
+            datatype="surf",
+            hemi="R",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="{method}",
+            suffix="conn.csv",
+            **subj_wildcards,
+        ),
+    params:
+        target_labels = lambda wildcards: config['targets'][wildcards.targets]['labels'],
+        index_col_value=bids(
+            **subj_wildcards, include_subject_dir=False, include_session_dir=False
+        ),
+        index_col_name="subj",
+    output:
+        csv=bids(
+            root=root,
+            datatype="tabular",
+            from_="{template}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="{method}",
+            form="legacy",
+            suffix="indepconn.csv",
+            **subj_wildcards,
+        ),
+    container:
+        config["singularity"]["pythondeps"]
+    group:
+        "subj"
+    script:
+        "../scripts/write_indepconn_metric.py"
+
 
 """
 rule write_surf_metrics_long_csv:

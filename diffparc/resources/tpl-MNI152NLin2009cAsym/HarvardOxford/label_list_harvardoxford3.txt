@@ -1,0 +1,6 @@
+Executive
+1 255 255 0 255
+Rostral_motor
+2 0 255 0 255
+Caudal_motor
+3 0 0 255 255
