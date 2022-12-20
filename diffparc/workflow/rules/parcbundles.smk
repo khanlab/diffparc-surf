@@ -136,6 +136,232 @@ rule create_parc_bundle:
         "fi"
 
 
+rule sample_dti_from_parcbundle:
+    input:
+        bundle=bids(
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            parc="{parc}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="bundle.tck",
+            **subj_wildcards,
+        ),
+        metric=bids(
+            root=root,
+            datatype="dwi",
+            suffix="{metric}.nii.gz",
+            **subj_wildcards,
+        ),
+    params:
+        stat_tck="-stat_tck {statsalong}",  #whether to use min, max, mean, median
+    output:
+        sample_txt=bids(
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            parc="{parc}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="mrtrix",
+            suffix="sampledti.txt",
+            metric="{metric}",
+            statsalong="{statsalong}",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["diffparc_deps"]
+    shell:
+        "tcksample -nthreads 0 -quiet {input.bundle} "
+        " {input.metric} {output.sample_txt} "
+        " {params.stat_tck} "
+
+
+rule sampledti_to_metric:
+    """converts the tcksample txt files to a gifti metric, setting all parc 
+    vertices to the dti aggregate value"""
+    input:
+        sample_txts=lambda wildcards: expand(
+            bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                parc="{parc}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                method="mrtrix",
+                suffix="sampledti.txt",
+                metric="{metric}",
+                statsalong="{statsalong}",
+                **subj_wildcards,
+            ),
+            parc=config["targets"][wildcards.targets]["labels"],
+            **wildcards,
+            allow_missing=True,
+        ),
+        label_gii=bids(
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="{method}",
+            suffix="maxprob.label.gii",
+            **subj_wildcards,
+        ),
+    params:
+        parcs=lambda wildcards: config["targets"][wildcards.targets]["labels"],
+        sample_txt_file=lambda wildcards: bids(
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            parc="{parc}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="mrtrix",
+            suffix="sampledti.txt",
+            metric="{metric}",
+            statsalong="{statsalong}",
+            **subj_wildcards
+        ),
+    output:
+        gii_metric=temp(
+            bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                method="{method,mrtrix}",
+                metric="{metric}",
+                statsalong="{statsalong}",
+                statsacross="{statsacross}",
+                suffix="nostructsampledti.shape.gii",
+                **subj_wildcards,
+            )
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["pythondeps"]
+    script:
+        "../scripts/tcksample_parcs_to_gifti_metric.py"
+
+
+rule set_structure_sampledti_metric:
+    input:
+        gii_metric=bids(
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="mrtrix",
+            metric="{metric}",
+            statsalong="{statsalong}",
+            statsacross="{statsacross}",
+            suffix="nostructsampledti.shape.gii",
+            **subj_wildcards,
+        ),
+    params:
+        structure=lambda wildcards: config["hemi_to_structure"][wildcards.hemi],
+    output:
+        gii_metric=bids(
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            method="mrtrix",
+            metric="{metric}",
+            statsalong="{statsalong}",
+            statsacross="{statsacross}",
+            suffix="sampledti.shape.gii",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["autotop"]
+    shell:
+        "cp {input} {output} && "
+        "wb_command -set-structure {output} {params.structure}"
+
+
+def get_gifti_metrics_sampledti(wildcards):
+    files = dict()
+    files["left_metric"] = bids(
+        root=root,
+        datatype="surf",
+        hemi="L",
+        desc="{targets}",
+        label="{seed}",
+        seedspervertex="{seedspervertex}",
+        method="mrtrix",
+        metric="{metric}",
+        statsalong="{statsalong}",
+        statsacross="{statsacross}",
+        suffix="sampledti.shape.gii",
+        **subj_wildcards,
+    ).format(
+        **wildcards,
+        statsalong=config["stat_along_tcks"],
+        statsacross=config["stat_across_tcks"],
+    )
+    files["right_metric"] = bids(
+        root=root,
+        datatype="surf",
+        hemi="R",
+        desc="{targets}",
+        label="{seed}",
+        seedspervertex="{seedspervertex}",
+        method="mrtrix",
+        metric="{metric}",
+        statsalong="{statsalong}",
+        statsacross="{statsacross}",
+        suffix="sampledti.shape.gii",
+        **subj_wildcards,
+    ).format(
+        **wildcards,
+        statsalong=config["stat_along_tcks"],
+        statsacross=config["stat_across_tcks"],
+    )
+    return files
+
+
+rule create_cifti_sampledti_dscalar:
+    input:
+        unpack(get_gifti_metrics_sampledti),
+    output:
+        cifti_dscalar=bids(
+            root=root,
+            datatype="surf",
+            desc="{targets}",
+            seedspervertex="{seedspervertex}",
+            method="mrtrix",
+            label="{seed}",
+            suffix="{metric,FA|MD}.dscalar.nii",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["autotop"]
+    shell:
+        "wb_command -cifti-create-dense-scalar {output} -left-metric {input.left_metric} -right-metric {input.right_metric}"
+
+
 rule create_parc_tdi:
     """tract density image for the parcel. if there are no streamlines,
     then we are given a zero-sized file (touched in previous rule),

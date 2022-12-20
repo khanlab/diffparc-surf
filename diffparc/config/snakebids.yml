@@ -497,8 +497,8 @@ surface_metrics:
   - inout
   - surfarea
   - indepconn
-  #- FA
-  #- MD
+  - FA
+  - MD
 
 methods:
   - mrtrix
