@@ -174,12 +174,10 @@ rule mask_template_t1w:
         t1=os.path.join(workflow.basedir, "..", config["template_t1w"]),
         mask=os.path.join(workflow.basedir, "..", config["template_mask"]),
     output:
-        t1=bids(
-            root=root,
-            prefix="tpl-{template}/anat/tpl-{template}",
-            desc="masked",
-            suffix="T1w.nii.gz",
-        ),
+        t1=get_template_prefix(
+            root=root, subj_wildcards=subj_wildcards, template="{template}"
+        )
+        + "_desc-masked_T1w.nii.gz",
     container:
         config["singularity"]["itksnap"]
     group:
@@ -247,12 +245,10 @@ rule greedy_affine_init:
             ),
         ],
         ref=[
-            bids(
-                root=root,
-                prefix="tpl-{template}/anat/tpl-{template}",
-                desc="masked",
-                suffix="T1w.nii.gz",
-            ),
+            get_template_prefix(
+                root=root, subj_wildcards=subj_wildcards, template="{template}"
+            )
+            + "_desc-masked_T1w.nii.gz",
             expand(
                 os.path.join(
                     workflow.basedir, "..", config["template_tissue_probseg"]
@@ -364,13 +360,11 @@ rule ants_syn_affine_init:
             from_="atropos3seg",
             desc="masked"
         ),
-        ref=bids(
-            root=root,
-            datatype="anat",
-            prefix="tpl-{template}/tpl-{template}",
-            desc="masked",
-            suffix="T1w.nii.gz",
-        ),
+
+        ref=get_template_prefix(
+            root=root, subj_wildcards=subj_wildcards, template="{template}"
+        )+"_desc-masked_T1w.nii.gz",
+
         init_xfm=bids(
             root=root,
             datatype="anat",
