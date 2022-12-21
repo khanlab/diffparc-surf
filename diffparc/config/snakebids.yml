@@ -211,6 +211,7 @@ singularity:
   mrtrix: 'docker://mrtrix3/mrtrix3:3.0.3'
   diffparc_deps: 'docker://akhanf/diffparc-deps:main' #this currently has mrtrix 3.0.3 and GNU parallel
   synthseg: 'docker://ghcr.io/akhanf/synthseg:master'
+  synthstrip: 'docker://freesurfer/synthstrip:1.3'
   pythondeps: 'docker://ghcr.io/khanlab/pythondeps-diffparc-app:v0.1.1'
   pyvista: 'docker://ghcr.io/pyvista/pyvista:latest-slim'
 
@@ -399,92 +400,6 @@ synthseg_labels:
       - 58
 
 
-synthseg_targets:
-  Limbic:
-    in:
-      - 1012
-      - 1014
-      - 1019
-      - 2012
-      - 2014
-      - 2019
-    out: 1
-  Executive:
-    in: 
-      - 1027
-      - 1028
-      - 1032
-      - 2027
-      - 2028
-      - 2032
-    out: 2
-  Rostral_motor:
-    in:
-      - 1018
-      - 1020
-      - 1003
-      - 2018
-      - 2020
-      - 2003
-    out: 3
-  Caudal_motor:
-    in:
-      - 1024
-      - 2024
-    out: 4
-  Parietal:
-    in:
-      - 1022
-      - 1029
-      - 1008
-      - 1031
-      - 1025
-      - 2022
-      - 2029
-      - 2008
-      - 2031
-      - 2025
-    out: 5
-  Occipital: 
-    in:
-      - 1011
-      - 1013
-      - 1005
-      - 1021
-      - 2011
-      - 2013
-      - 2005
-      - 2021
-
-    out: 6
-  Temporal:
-    in: 
-      - 1030
-      - 1015
-      - 1009
-      - 1001
-      - 1007
-      - 1034
-      - 1006
-      - 1033
-      - 1016
-      - 2030
-      - 2015
-      - 2009
-      - 2001
-      - 2007
-      - 2034
-      - 2006
-      - 2033
-      - 2016
-    out: 7
-
-
-
-       
-
-
-
 hemispheres:
   - 'L'
   - 'R'
@@ -528,7 +443,6 @@ use_eddy: False
 use_topup: False
 skip_dwi_preproc: False
 
-use_synthseg_targets: False
 
 stat_along_tcks: 'mean'  
 stat_across_tcks: 'mean'

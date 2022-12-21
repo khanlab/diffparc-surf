@@ -280,44 +280,6 @@ else:
             "chmod a+x {params.script} && "
             "{params.script} {input.bvecs} {input.xfm_fsl} {output.bvecs} && "
             "cp -v {input.bvals} {output.bvals}"
-# just grab the first T1w for now:
-
-
-
-rule import_t1:
-    input:
-        lambda wildcards: expand(
-            input_path["T1w"],
-            zip,
-            **snakebids.filter_list(input_zip_lists["T1w"], wildcards)
-        )[0],
-    output:
-        bids(root=root, datatype="anat", **subj_wildcards, suffix="T1w.nii.gz"),
-    group:
-        "subj"
-    shell:
-        "cp {input} {output}"
-
-
-rule n4_t1:
-    input:
-        t1=bids(root=root, datatype="anat", **subj_wildcards, suffix="T1w.nii.gz"),
-    output:
-        t1=bids(
-            root=root,
-            datatype="anat",
-            **subj_wildcards,
-            desc="n4",
-            suffix="T1w.nii.gz"
-        ),
-    threads: 8
-    container:
-        config["singularity"]["ants"]
-    group:
-        "subj"
-    shell:
-        "ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={threads} "
-        "N4BiasFieldCorrection -d 3 -i {input.t1} -o {output}"
 
 
 rule reg_dwi_to_t1:
@@ -475,9 +437,9 @@ rule convert_xfm_ras2fsl:
         "subj"
     shell:
         "c3d_affine_tool {input.xfm_ras} -ref {input.t1w} -src {input.avgb0} -ras2fsl -o {output.xfm_fsl}"
-
-
 # tight crop around b0 after rotating into T1w space
+
+
 rule create_cropped_ref:
     input:
         warped_avgb0=bids(

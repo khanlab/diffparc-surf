@@ -3,7 +3,15 @@
 
 rule extract_target_mask:
     input:
-        targets=get_dseg_targets_nii,
+        targets=bids(
+            root=root,
+            **subj_wildcards,
+            space="individual",
+            desc="{targets}",
+            from_=config["template"],
+            datatype="anat",
+            suffix="dseg.nii.gz"
+        ),
     params:
         label_num=lambda wildcards: config["targets"][wildcards.targets][
             "labels"

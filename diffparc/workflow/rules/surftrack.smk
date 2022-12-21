@@ -166,64 +166,6 @@ rule track_from_vertices:
         " :::  `seq --format '%05g' $(cat {input.csv} | wc -l)` ::: `cat {input.csv}` "
 
 
-def get_dseg_targets(wildcards):
-
-    if config["use_synthseg_targets"]:
-        return (
-            bids(
-                root=root,
-                **subj_wildcards,
-                space="individual",
-                desc="{targets}",
-                from_="synthsegnearest",
-                datatype="anat",
-                suffix="dseg.mif"
-            ),
-        )
-
-    else:
-        return (
-            bids(
-                root=root,
-                **subj_wildcards,
-                space="individual",
-                desc="{targets}",
-                from_=config["template"],
-                datatype="anat",
-                suffix="dseg.mif"
-            ),
-        )
-
-
-def get_dseg_targets_nii(wildcards):
-
-    if config["use_synthseg_targets"]:
-        return (
-            bids(
-                root=root,
-                **subj_wildcards,
-                space="individual",
-                desc="{targets}",
-                from_="synthsegnearest",
-                datatype="anat",
-                suffix="dseg.nii.gz"
-            ),
-        )
-
-    else:
-        return (
-            bids(
-                root=root,
-                **subj_wildcards,
-                space="individual",
-                desc="{targets}",
-                from_=config["template"],
-                datatype="anat",
-                suffix="dseg.nii.gz"
-            ),
-        )
-
-
 rule connectivity_from_vertices:
     # Tournier, J.-D.; Calamante, F. & Connelly, A. Improved probabilistic streamlines tractography by 2nd order integration over fibre orientation distributions. Proceedings of the International Society for Magnetic Resonance in Medicine, 2010, 1670
     input:
@@ -236,7 +178,15 @@ rule connectivity_from_vertices:
             suffix="vertextracts",
             **subj_wildcards,
         ),
-        targets=get_dseg_targets,
+        targets=bids(
+            root=root,
+            **subj_wildcards,
+            space="individual",
+            desc="{targets}",
+            from_=config["template"],
+            datatype="anat",
+            suffix="dseg.mif"
+        ),
     output:
         conn_dir=temp(
             directory(
