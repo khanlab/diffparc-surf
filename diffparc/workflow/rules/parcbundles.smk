@@ -1,6 +1,4 @@
 """  
-    Note: This rule file is not currently used..
-
 
      These rules create the streamline bundles that start from 
     a striatum parcellation, and reach the corresponding target, 
@@ -25,7 +23,7 @@
 def get_tck_filename(wildcards):
     return bids(
         root=config["tmp_dir"],
-        datatype="surf",
+        datatype="tracts",
         hemi="{hemi}",
         label="{seed}",
         seedspervertex="{seedspervertex}",
@@ -58,7 +56,7 @@ rule create_parc_tcklist:
         tcklist=temp(
             bids(
                 root=root,
-                datatype="surf",
+                datatype="tracts",
                 hemi="{hemi}",
                 desc="{targets}",
                 parc="{parc}",
@@ -83,7 +81,7 @@ rule create_parc_bundle:
     input:
         tcklist=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -94,7 +92,7 @@ rule create_parc_bundle:
         ),
         tck_dir=bids(
             root=config["tmp_dir"],
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             label="{seed}",
             seedspervertex="{seedspervertex}",
@@ -112,7 +110,7 @@ rule create_parc_bundle:
     output:
         bundle=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -138,7 +136,7 @@ rule sample_dti_from_parcbundle:
     input:
         bundle=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -158,7 +156,7 @@ rule sample_dti_from_parcbundle:
     output:
         sample_txt=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -187,7 +185,7 @@ rule sampledti_to_metric:
         sample_txts=lambda wildcards: expand(
             bids(
                 root=root,
-                datatype="surf",
+                datatype="tracts",
                 hemi="{hemi}",
                 desc="{targets}",
                 parc="{parc}",
@@ -218,7 +216,7 @@ rule sampledti_to_metric:
         parcs=lambda wildcards: config["targets"][wildcards.targets]["labels"],
         sample_txt_file=lambda wildcards: bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -367,7 +365,7 @@ rule create_parc_tdi:
     input:
         bundle=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -386,7 +384,7 @@ rule create_parc_tdi:
     output:
         tdi=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -414,7 +412,7 @@ rule threshold_tdi:
     input:
         bundle=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -425,7 +423,7 @@ rule threshold_tdi:
         ),
         tdi=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -437,7 +435,7 @@ rule threshold_tdi:
     output:
         mask=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             parc="{parc}",
@@ -465,7 +463,7 @@ rule concat_all_streamlines:
     input:
         tck_dir=bids(
             root=config["tmp_dir"],
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             label="{seed}",
             seedspervertex="{seedspervertex}",
@@ -475,7 +473,7 @@ rule concat_all_streamlines:
     output:
         bundle=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             label="{seed}",
             seedspervertex="{seedspervertex}",

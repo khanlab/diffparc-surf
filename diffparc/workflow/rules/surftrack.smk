@@ -41,7 +41,7 @@ rule transform_template_surf_to_t1:
             hemi="{hemi}",
             **subj_wildcards,
             desc="fluid",
-            datatype="surf",
+            datatype="morph",
             suffix="{seed}.surf.gii"
         ),
         rigid_world=bids(
@@ -87,7 +87,7 @@ rule create_surf_seed_csv:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            datatype="surf",
+            datatype="tracts",
             label="{seed}",
             suffix="seeds.csv"
         ),
@@ -119,7 +119,7 @@ rule track_from_vertices:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            datatype="surf",
+            datatype="tracts",
             label="{seed}",
             suffix="seeds.csv"
         ),
@@ -131,7 +131,7 @@ rule track_from_vertices:
             directory(
                 bids(
                     root=config["tmp_dir"],
-                    datatype="surf",
+                    datatype="tracts",
                     hemi="{hemi}",
                     label="{seed}",
                     seedspervertex="{seedspervertex}",
@@ -162,7 +162,7 @@ rule connectivity_from_vertices:
     input:
         tck_dir=bids(
             root=config["tmp_dir"],
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             label="{seed}",
             seedspervertex="{seedspervertex}",

@@ -125,7 +125,7 @@ rule rigid_shape_reg:
             hemi="{hemi}",
             label="{seed}",
             space=config["template"],
-            datatype="surf",
+            datatype="morph",
             suffix="probseg.nii.gz"
         ),
     container:
@@ -152,7 +152,7 @@ rule fluid_shape_reg:
             hemi="{hemi}",
             label="{seed}",
             space=config["template"],
-            datatype="surf",
+            datatype="morph",
             suffix="probseg.nii.gz"
         ),
     output:
@@ -173,7 +173,7 @@ rule fluid_shape_reg:
             desc="fluid",
             label="{seed}",
             space=config["template"],
-            datatype="surf",
+            datatype="morph",
             suffix="probseg.nii.gz"
         ),
     threads: 8
@@ -239,7 +239,7 @@ rule deform_surface:
             hemi="{hemi}",
             **subj_wildcards,
             desc="fluid",
-            datatype="surf",
+            datatype="morph",
             suffix="{seed}.surf.gii"
         ),
     group:
@@ -258,7 +258,7 @@ rule compute_displacement_metrics:
             hemi="{hemi}",
             **subj_wildcards,
             desc="fluid",
-            datatype="surf",
+            datatype="morph",
             suffix="{seed}.surf.gii"
         ),
     output:
@@ -267,7 +267,7 @@ rule compute_displacement_metrics:
                 root=root,
                 hemi="{hemi}",
                 **subj_wildcards,
-                datatype="surf",
+                datatype="morph",
                 label="{seed}",
                 suffix="scalardisp.shape.gii"
             )
@@ -277,7 +277,7 @@ rule compute_displacement_metrics:
                 root=root,
                 hemi="{hemi}",
                 **subj_wildcards,
-                datatype="surf",
+                datatype="morph",
                 label="{seed}",
                 suffix="vectordisp.shape.gii"
             )
@@ -313,7 +313,7 @@ rule smooth_displacement_vectors:
             root=root,
             hemi="{hemi}",
             **subj_wildcards,
-            datatype="surf",
+            datatype="morph",
             label="{seed}",
             suffix="vectordisp.shape.gii"
         ),
@@ -325,7 +325,7 @@ rule smooth_displacement_vectors:
             **subj_wildcards,
             hemi="{hemi}",
             desc="smoothed",
-            datatype="surf",
+            datatype="morph",
             label="{seed}",
             suffix="vectordisp.shape.gii"
         ),
@@ -345,7 +345,7 @@ rule normalize_displacement_by_smoothed:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            datatype="surf",
+            datatype="morph",
             label="{seed}",
             suffix="vectordisp.shape.gii"
         ),
@@ -354,7 +354,7 @@ rule normalize_displacement_by_smoothed:
             **subj_wildcards,
             hemi="{hemi}",
             desc="smoothed",
-            datatype="surf",
+            datatype="morph",
             label="{seed}",
             suffix="vectordisp.shape.gii"
         ),
@@ -364,7 +364,7 @@ rule normalize_displacement_by_smoothed:
             **subj_wildcards,
             hemi="{hemi}",
             desc="normalized",
-            datatype="surf",
+            datatype="morph",
             label="{seed}",
             suffix="vectordisp.shape.gii"
         ),
@@ -386,7 +386,7 @@ rule calc_inout_displacement:
             hemi="{hemi}",
             **subj_wildcards,
             desc="normalized",
-            datatype="surf",
+            datatype="morph",
             label="{seed}",
             suffix="vectordisp.shape.gii"
         ),
@@ -412,71 +412,3 @@ rule calc_inout_displacement:
         " -var n1 {input.norm} -column 1  "
         " -var n2 {input.norm} -column 2  "
         " -var n3 {input.norm} -column 3  "
-
-
-rule create_cifti_metric_dscalar:
-    input:
-        left_metric=bids(
-            root=root,
-            **subj_wildcards,
-            hemi="L",
-            datatype="surf",
-            label="{seed}",
-            suffix="{metric}.shape.gii"
-        ),
-        right_metric=bids(
-            root=root,
-            **subj_wildcards,
-            hemi="R",
-            datatype="surf",
-            label="{seed}",
-            suffix="{metric}.shape.gii"
-        ),
-    output:
-        cifti_dscalar=bids(
-            root=root,
-            **subj_wildcards,
-            datatype="surf",
-            label="{seed}",
-            suffix="{metric}.dscalar.nii"
-        ),
-    group:
-        "subj"
-    container:
-        config["singularity"]["autotop"]
-    shell:
-        "wb_command -cifti-create-dense-scalar {output} -left-metric {input.left_metric} -right-metric {input.right_metric}"
-
-
-rule merge_dscalar_metrics_over_subjects:
-    input:
-        cifti_dscalar_subjects=expand(
-            bids(
-                root=root,
-                **subj_wildcards,
-                datatype="surf",
-                label="{seed}",
-                suffix="{metric}.dscalar.nii"
-            ),
-            zip,
-            **subj_zip_list,
-            allow_missing=True
-        ),
-    params:
-        merge_opt=lambda wildcards, input: " ".join(
-            [f"-cifti {cifti}" for cifti in input.cifti_dscalar_subjects]
-        ),
-    output:
-        cifti_dscalar_group=bids(
-            root=root,
-            subject="group",
-            datatype="surf",
-            label="{seed}",
-            suffix="{metric}.dscalar.nii",
-        ),
-    container:
-        config["singularity"]["autotop"]
-    group:
-        "group"
-    shell:
-        "wb_command -cifti-merge {output} {params.merge_opt}"
