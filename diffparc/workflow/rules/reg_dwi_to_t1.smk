@@ -440,6 +440,7 @@ rule convert_xfm_ras2fsl:
 # tight crop around b0 after rotating into T1w space
 
 
+
 rule create_cropped_ref:
     input:
         warped_avgb0=bids(
