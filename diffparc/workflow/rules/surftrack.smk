@@ -4,12 +4,12 @@ rule convert_rigid_to_world:
             root=root,
             suffix="xfm.txt",
             hemi="{hemi}",
-            from_="{template}",
+            from_=config["template"],
             to="subj",
             desc="rigid",
             type_="itk",
             label="{seed}",
-            datatype="surf",
+            datatype="warps",
             **subj_wildcards
         ),
     output:
@@ -17,12 +17,12 @@ rule convert_rigid_to_world:
             root=root,
             suffix="xfm.txt",
             hemi="{hemi}",
-            from_="{template}",
+            from_=config["template"],
             to="subj",
             desc="rigid",
             type_="world",
             label="{seed}",
-            datatype="surf",
+            datatype="warps",
             **subj_wildcards
         ),
     group:
@@ -41,7 +41,6 @@ rule transform_template_surf_to_t1:
             hemi="{hemi}",
             **subj_wildcards,
             desc="fluid",
-            from_="{template}",
             datatype="surf",
             suffix="{seed}.surf.gii"
         ),
@@ -49,21 +48,19 @@ rule transform_template_surf_to_t1:
             root=root,
             suffix="xfm.txt",
             hemi="{hemi}",
-            from_="{template}",
+            from_=config["template"],
             to="subj",
             desc="rigid",
             type_="world",
             label="{seed}",
-            datatype="surf",
+            datatype="warps",
             **subj_wildcards
         ),
     output:
         surf_warped=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             hemi="{hemi}",
-            from_="{template}",
             datatype="surf",
             suffix="{seed}.surf.gii"
         ),
@@ -82,8 +79,6 @@ rule create_surf_seed_csv:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
-            from_="{template}",
             datatype="surf",
             suffix="{seed}.surf.gii"
         ),
@@ -92,8 +87,6 @@ rule create_surf_seed_csv:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="seeds.csv"
@@ -125,9 +118,7 @@ rule track_from_vertices:
         csv=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             hemi="{hemi}",
-            from_=config["template"],
             datatype="surf",
             label="{seed}",
             suffix="seeds.csv"
@@ -181,9 +172,7 @@ rule connectivity_from_vertices:
         targets=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             desc="{targets}",
-            from_=config["template"],
             datatype="anat",
             suffix="dseg.mif"
         ),
@@ -574,7 +563,6 @@ rule parcellate_cifti_metric:
         cifti_dscalar=bids(
             root=root,
             **subj_wildcards,
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             method="{method}",
@@ -594,7 +582,6 @@ rule parcellate_cifti_metric:
         cifti_pscalar=bids(
             root=root,
             **subj_wildcards,
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             parcel="{targets}",
@@ -616,9 +603,7 @@ rule calc_surface_area_metric:
         surf_warped=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             hemi="{hemi}",
-            from_="{template}",
             datatype="surf",
             suffix="{seed}.surf.gii"
         ),
@@ -627,7 +612,6 @@ rule calc_surface_area_metric:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="surfarea.shape.gii"

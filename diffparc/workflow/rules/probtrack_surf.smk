@@ -6,9 +6,7 @@ rule extract_target_mask:
         targets=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             desc="{targets}",
-            from_=config["template"],
             datatype="anat",
             suffix="dseg.nii.gz"
         ),
@@ -21,10 +19,8 @@ rule extract_target_mask:
         bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             targets="{targets}",
             desc="{desc}",
-            from_=config["template"],
             datatype="anat",
             suffix="mask.nii.gz"
         ),
@@ -71,10 +67,8 @@ rule fix_sform_target:
         bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             targets="{targets}",
             desc="{desc}",
-            from_=config["template"],
             datatype="anat",
             suffix="mask.nii.gz"
         ),
@@ -82,10 +76,8 @@ rule fix_sform_target:
         bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             targets="{targets}",
             desc="{desc}",
-            from_=config["template"],
             fix="sform",
             datatype="anat",
             suffix="mask.nii.gz"
@@ -104,10 +96,8 @@ rule gen_targets_txt:
             bids(
                 root=root,
                 **subj_wildcards,
-                space="individual",
                 targets="{targets}",
                 desc="{desc}",
-                from_=config["template"],
                 fix="sform",
                 datatype="anat",
                 suffix="mask.nii.gz"
@@ -119,9 +109,7 @@ rule gen_targets_txt:
         target_txt=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             targets="{targets}",
-            from_=config["template"],
             datatype="anat",
             suffix="targets.txt"
         ),
@@ -148,9 +136,7 @@ rule run_probtrack_surface:
         target_txt=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             targets="{targets}",
-            from_=config["template"],
             datatype="anat",
             suffix="targets.txt"
         ),
@@ -158,8 +144,6 @@ rule run_probtrack_surface:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
-            from_=config["template"],
             datatype="surf",
             suffix="{seed}.surf.gii"
         ),

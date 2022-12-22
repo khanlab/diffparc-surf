@@ -104,10 +104,8 @@ rule create_parc_bundle:
         mask=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             targets="{targets}",
             desc="{parc}",
-            from_=config["template"],
             datatype="anat",
             suffix="mask.nii.gz"
         ),

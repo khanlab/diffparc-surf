@@ -6,7 +6,7 @@ rule mask_template_t1w:
         mask=os.path.join(workflow.basedir, "..", config["template_mask"]),
     output:
         t1=get_template_prefix(
-            root=root, subj_wildcards=subj_wildcards, template="{template}"
+            root=root, subj_wildcards=subj_wildcards, template=config["template"]
         )
         + "_desc-masked_T1w.nii.gz",
     container:
@@ -37,11 +37,11 @@ rule greedy_t1_to_template:
         ],
         ref=[
             get_template_prefix(
-                root=root, subj_wildcards=subj_wildcards, template="{template}"
+                root=root, subj_wildcards=subj_wildcards, template=config["template"]
             )
             + "_desc-masked_T1w.nii.gz",
             get_template_prefix(
-                root=root, subj_wildcards=subj_wildcards, template="{template}"
+                root=root, subj_wildcards=subj_wildcards, template=config["template"]
             )
             + "_desc-synthseg_dseg.nii.gz",
         ],
@@ -61,18 +61,18 @@ rule greedy_t1_to_template:
     output:
         warp=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="warp.nii.gz",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             **subj_wildcards
         ),
         invwarp=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="invwarp.nii.gz",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             **subj_wildcards
         ),
         warped_flo=[
@@ -80,26 +80,26 @@ rule greedy_t1_to_template:
                 root=root,
                 datatype="anat",
                 suffix="T1w.nii.gz",
-                space="{template}",
+                space=config["template"],
                 desc="greedy",
                 **subj_wildcards
             )
         ],
         affine=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="affine.txt",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             desc="itk",
             **subj_wildcards
         ),
         affine_xfm_ras=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="affine.txt",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             desc="ras",
             **subj_wildcards
         ),
@@ -112,7 +112,12 @@ rule greedy_t1_to_template:
     group:
         "subj"
     log:
-        bids(root="logs", suffix="greedy.log", template="{template}", **subj_wildcards),
+        bids(
+            root="logs",
+            suffix="greedy.log",
+            template=config["template"],
+            **subj_wildcards
+        ),
     shell:
         #affine first
         "greedy -d 3 -threads {threads} -a -m NCC 2x2x2 {params.input_fixed_moving} -o {output.affine_xfm_ras} -ia-image-centers -n {params.affine_iterations} &> {log} && "

@@ -3,7 +3,6 @@ def get_dscalar_nii(wildcards):
     if metric == "surfarea" or metric == "inout":
         dscalar = bids(
             root=root,
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="{metric}.dscalar.nii",
@@ -48,7 +47,6 @@ rule write_surf_metrics_legacy_csv:
         csv=bids(
             root=root,
             datatype="tabular",
-            from_="{template}",
             desc="{targets}",
             label="{seed}",
             seedspervertex="{seedspervertex}",
@@ -103,7 +101,6 @@ rule write_indepconn_metric_csv:
         csv=bids(
             root=root,
             datatype="tabular",
-            from_="{template}",
             desc="{targets}",
             label="{seed}",
             seedspervertex="{seedspervertex}",
@@ -120,110 +117,12 @@ rule write_indepconn_metric_csv:
         "../scripts/write_indepconn_metric.py"
 
 
-"""
-rule write_surf_metrics_long_csv:
-    input:
-        dscalars=expand(
-            bids(
-                root=root,
-                from_="{template}",
-                datatype="surf",
-                label="{seed}",
-                suffix="{metric}.dscalar.nii",
-                **subj_wildcards,
-            ),
-            metric=config["surface_metrics"],
-            allow_missing=True,
-        ),
-        dlabel=bids(
-            root=root,
-            datatype="surf",
-            desc="{targets}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            method='{method}',
-            suffix="maxprob.dlabel.nii",
-            **subj_wildcards,
-        ),
-    params:
-        metrics=config["surface_metrics"],
-    output:
-        csv=bids(
-            root=root,
-            datatype="tabular",
-            from_="{template}",
-            desc="{targets}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            method='{method}',
-            form="long",
-            suffix="surfmetrics.csv",
-            **subj_wildcards,
-        ),
-    container:
-        config["singularity"]["pythondeps"]
-    group:
-        "subj"
-    script:
-        "../scripts/write_surf_metrics_long.py"
-
-
-rule write_surf_metrics_wide_csv:
-    input:
-        dscalars=expand(
-            bids(
-                root=root,
-                from_="{template}",
-                datatype="surf",
-                label="{seed}",
-                suffix="{metric}.dscalar.nii",
-                **subj_wildcards,
-            ),
-            metric=config["surface_metrics"],
-            allow_missing=True,
-        ),
-        dlabel=bids(
-            root=root,
-            datatype="surf",
-            desc="{targets}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            method='{method}',
-            suffix="maxprob.dlabel.nii",
-            **subj_wildcards,
-        ),
-    params:
-        metrics=config["surface_metrics"],
-    output:
-        csv=bids(
-            root=root,
-            datatype="tabular",
-            from_="{template}",
-            desc="{targets}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            method='{method}',
-            form="wide",
-            suffix="surfmetrics.csv",
-            **subj_wildcards,
-        ),
-    container:
-        config["singularity"]["pythondeps"]
-    group:
-        "subj"
-    script:
-        "../scripts/write_surf_metrics_wide.py"
-
-"""
-
-
 rule concat_subj_csv:
     input:
         csvs=expand(
             bids(
                 root=root,
                 datatype="tabular",
-                from_="{template}",
                 desc="{targets}",
                 label="{seed}",
                 seedspervertex="{seedspervertex}",
@@ -241,7 +140,6 @@ rule concat_subj_csv:
             root=root,
             subject="group",
             datatype="tabular",
-            from_="{template}",
             desc="{targets}",
             label="{seed}",
             seedspervertex="{seedspervertex}",

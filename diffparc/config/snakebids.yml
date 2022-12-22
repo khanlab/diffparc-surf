@@ -245,17 +245,17 @@ masking:
 template: MNI152NLin2009cAsym
 
 
-template_t1w: resources/tpl-{template}/tpl-{template}_res-01_T1w.nii.gz
-template_mask: resources/tpl-{template}/tpl-{template}_res-01_desc-brain_mask.nii.gz 
+template_t1w: resources/tpl-MNI152NLin2009cAsym/tpl-MNI152NLin2009cAsym_res-01_T1w.nii.gz
+template_mask: resources/tpl-MNI152NLin2009cAsym/tpl-MNI152NLin2009cAsym_res-01_desc-brain_mask.nii.gz 
 
         
 #avg bshell images are used for registration for brainmasking dwi
-template_b0: resources/tpl-{template}/tpl-{template}_res-dwi_desc-fromhcp_b0.nii.gz
+template_b0: resources/tpl-MNI152NLin2009cAsym/tpl-MNI152NLin2009cAsym_res-dwi_desc-fromhcp_b0.nii.gz
 
-template_atlas_dseg_nii: resources/tpl-{template}/tpl-{template}_res-1_atlas-{atlas}_dseg.nii.gz
-template_atlas_dseg_tsv: resources/tpl-{template}/tpl-{template}_atlas-{atlas}_dseg.tsv
+template_atlas_dseg_nii: resources/tpl-MNI152NLin2009cAsym/tpl-MNI152NLin2009cAsym_res-1_atlas-{atlas}_dseg.nii.gz
+template_atlas_dseg_tsv: resources/tpl-MNI152NLin2009cAsym/tpl-MNI152NLin2009cAsym_atlas-{atlas}_dseg.tsv
 
-template_tissue_probseg: resources/tpl-{template}/tpl-{template}_res-01_label-{tissue}_probseg.nii.gz
+template_tissue_probseg: resources/tpl-MNI152NLin2009cAsym/tpl-MNI152NLin2009cAsym_res-01_label-{tissue}_probseg.nii.gz
 
 #number of times to dilate  (each time 3x3x3 mode dilation)
 n_atlas_dilate: 3

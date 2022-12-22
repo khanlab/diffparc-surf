@@ -23,7 +23,7 @@ rule gen_template_surface:
     output:
         surf_gii=temp(
             get_template_prefix(
-                root=root, subj_wildcards=subj_wildcards, template="{template}"
+                root=root, subj_wildcards=subj_wildcards, template=config["template"]
             )
             + "_hemi-{hemi}_desc-nostruct_{seed}.surf.gii"
         ),
@@ -38,14 +38,14 @@ rule gen_template_surface:
 rule set_surface_structure:
     input:
         surf_gii=get_template_prefix(
-            root=root, subj_wildcards=subj_wildcards, template="{template}"
+            root=root, subj_wildcards=subj_wildcards, template=config["template"]
         )
         + "_hemi-{hemi}_desc-nostruct_{seed}.surf.gii",
     params:
         structure=lambda wildcards: config["hemi_to_structure"][wildcards.hemi],
     output:
         surf_gii=get_template_prefix(
-            root=root, subj_wildcards=subj_wildcards, template="{template}"
+            root=root, subj_wildcards=subj_wildcards, template=config["template"]
         )
         + "_hemi-{hemi}_{seed}.surf.gii",
     group:
@@ -64,10 +64,8 @@ def get_subject_seg_for_shapereg(wildcards):
                 root=root,
                 datatype="anat",
                 suffix="probseg.nii.gz",
-                space="individual",
                 hemi="{hemi}",
                 label="{seed}",
-                from_="{template}",
                 desc="shapeinject",
                 **subj_wildcards
             ),
@@ -78,9 +76,7 @@ def get_subject_seg_for_shapereg(wildcards):
                 root=root,
                 **subj_wildcards,
                 hemi="{hemi}",
-                space="individual",
                 label="{seed}",
-                from_="{template}",
                 datatype="anat",
                 suffix="probseg.nii.gz"
             ),
@@ -102,24 +98,24 @@ rule rigid_shape_reg:
             root=root,
             suffix="xfm.txt",
             hemi="{hemi}",
-            from_="{template}",
+            from_=config["template"],
             to="subj",
             desc="rigid",
             type_="ras",
             label="{seed}",
-            datatype="surf",
+            datatype="warps",
             **subj_wildcards
         ),
         xfm_itk=bids(
             root=root,
             suffix="xfm.txt",
             hemi="{hemi}",
-            from_="{template}",
+            from_=config["template"],
             to="subj",
             desc="rigid",
             type_="itk",
             label="{seed}",
-            datatype="surf",
+            datatype="warps",
             **subj_wildcards
         ),
         warped_target=bids(
@@ -128,7 +124,7 @@ rule rigid_shape_reg:
             desc="rigid",
             hemi="{hemi}",
             label="{seed}",
-            space="{template}",
+            space=config["template"],
             datatype="surf",
             suffix="probseg.nii.gz"
         ),
@@ -155,18 +151,18 @@ rule fluid_shape_reg:
             desc="rigid",
             hemi="{hemi}",
             label="{seed}",
-            space="{template}",
+            space=config["template"],
             datatype="surf",
             suffix="probseg.nii.gz"
         ),
     output:
         warp=bids(
             root=root,
-            datatype="surf",
+            datatype="warps",
             suffix="warp.nii.gz",
             hemi="{hemi}",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             label="{seed}",
             **subj_wildcards
         ),
@@ -176,7 +172,7 @@ rule fluid_shape_reg:
             hemi="{hemi}",
             desc="fluid",
             label="{seed}",
-            space="{template}",
+            space=config["template"],
             datatype="surf",
             suffix="probseg.nii.gz"
         ),
@@ -197,22 +193,22 @@ rule convert_warpfield:
     input:
         warp=bids(
             root=root,
-            datatype="surf",
+            datatype="warps",
             suffix="warp.nii.gz",
             hemi="{hemi}",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             label="{seed}",
             **subj_wildcards
         ),
     output:
         warp=bids(
             root=root,
-            datatype="surf",
+            datatype="warps",
             hemi="{hemi}",
             suffix="surfwarp.nii.gz",
             to_="subject",
-            from_="{template}",
+            from_=config["template"],
             label="{seed}",
             **subj_wildcards
         ),
@@ -229,11 +225,11 @@ rule deform_surface:
         surf_gii=rules.set_surface_structure.output,
         warp=bids(
             root=root,
-            datatype="surf",
+            datatype="warps",
             hemi="{hemi}",
             suffix="surfwarp.nii.gz",
             to_="subject",
-            from_="{template}",
+            from_=config["template"],
             label="{seed}",
             **subj_wildcards
         ),
@@ -243,7 +239,6 @@ rule deform_surface:
             hemi="{hemi}",
             **subj_wildcards,
             desc="fluid",
-            from_="{template}",
             datatype="surf",
             suffix="{seed}.surf.gii"
         ),
@@ -263,7 +258,6 @@ rule compute_displacement_metrics:
             hemi="{hemi}",
             **subj_wildcards,
             desc="fluid",
-            from_="{template}",
             datatype="surf",
             suffix="{seed}.surf.gii"
         ),
@@ -273,7 +267,6 @@ rule compute_displacement_metrics:
                 root=root,
                 hemi="{hemi}",
                 **subj_wildcards,
-                from_="{template}",
                 datatype="surf",
                 label="{seed}",
                 suffix="scalardisp.shape.gii"
@@ -284,7 +277,6 @@ rule compute_displacement_metrics:
                 root=root,
                 hemi="{hemi}",
                 **subj_wildcards,
-                from_="{template}",
                 datatype="surf",
                 label="{seed}",
                 suffix="vectordisp.shape.gii"
@@ -303,7 +295,7 @@ rule calc_template_surf_normals:
         ref_surf=rules.set_surface_structure.output,
     output:
         normals=get_template_prefix(
-            root=root, subj_wildcards=subj_wildcards, template="{template}"
+            root=root, subj_wildcards=subj_wildcards, template=config["template"]
         )
         + "_hemi-{hemi}_label-{seed}_normals.shape.gii",
     group:
@@ -321,7 +313,6 @@ rule smooth_displacement_vectors:
             root=root,
             hemi="{hemi}",
             **subj_wildcards,
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="vectordisp.shape.gii"
@@ -334,7 +325,6 @@ rule smooth_displacement_vectors:
             **subj_wildcards,
             hemi="{hemi}",
             desc="smoothed",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="vectordisp.shape.gii"
@@ -355,7 +345,6 @@ rule normalize_displacement_by_smoothed:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="vectordisp.shape.gii"
@@ -365,7 +354,6 @@ rule normalize_displacement_by_smoothed:
             **subj_wildcards,
             hemi="{hemi}",
             desc="smoothed",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="vectordisp.shape.gii"
@@ -376,7 +364,6 @@ rule normalize_displacement_by_smoothed:
             **subj_wildcards,
             hemi="{hemi}",
             desc="normalized",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="vectordisp.shape.gii"
@@ -399,7 +386,6 @@ rule calc_inout_displacement:
             hemi="{hemi}",
             **subj_wildcards,
             desc="normalized",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="vectordisp.shape.gii"
@@ -410,7 +396,6 @@ rule calc_inout_displacement:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="inout.shape.gii"
@@ -435,7 +420,6 @@ rule create_cifti_metric_dscalar:
             root=root,
             **subj_wildcards,
             hemi="L",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="{metric}.shape.gii"
@@ -444,7 +428,6 @@ rule create_cifti_metric_dscalar:
             root=root,
             **subj_wildcards,
             hemi="R",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="{metric}.shape.gii"
@@ -453,7 +436,6 @@ rule create_cifti_metric_dscalar:
         cifti_dscalar=bids(
             root=root,
             **subj_wildcards,
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="{metric}.dscalar.nii"
@@ -472,7 +454,6 @@ rule merge_dscalar_metrics_over_subjects:
             bids(
                 root=root,
                 **subj_wildcards,
-                from_="{template}",
                 datatype="surf",
                 label="{seed}",
                 suffix="{metric}.dscalar.nii"
@@ -489,7 +470,6 @@ rule merge_dscalar_metrics_over_subjects:
         cifti_dscalar_group=bids(
             root=root,
             subject="group",
-            from_="{template}",
             datatype="surf",
             label="{seed}",
             suffix="{metric}.dscalar.nii",

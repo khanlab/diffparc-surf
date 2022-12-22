@@ -45,18 +45,18 @@ rule transform_seed_to_subject:
         ),
         inv_warp=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="invwarp.nii.gz",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             **subj_wildcards
         ),
         affine_xfm_itk=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="affine.txt",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             desc="itk",
             **subj_wildcards
         ),
@@ -65,9 +65,7 @@ rule transform_seed_to_subject:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
             label="{seed}",
-            from_="{template}",
             datatype="anat",
             suffix="probseg.nii.gz"
         ),
@@ -80,9 +78,7 @@ rule transform_seed_to_subject:
             root="logs",
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
             label="{seed}",
-            from_="{template}",
             suffix="transformseedtosubject.log"
         ),
     group:
@@ -110,18 +106,18 @@ rule transform_targets_to_subject:
         ),
         inv_warp=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="invwarp.nii.gz",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             **subj_wildcards
         ),
         affine_xfm_itk=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="affine.txt",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             desc="itk",
             **subj_wildcards
         ),
@@ -129,9 +125,7 @@ rule transform_targets_to_subject:
         targets=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             desc="{targets}",
-            from_="{template}",
             datatype="anat",
             suffix="dseg.nii.gz"
         ),
@@ -144,7 +138,6 @@ rule transform_targets_to_subject:
             root="logs",
             **subj_wildcards,
             desc="{targets}",
-            from_="{template}",
             suffix="transformtargetstosubjects.log"
         ),
     group:
@@ -160,9 +153,7 @@ rule binarize_trim_subject_seed:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
             label="{seed}",
-            from_="{template}",
             datatype="anat",
             suffix="probseg.nii.gz"
         ),
@@ -173,9 +164,7 @@ rule binarize_trim_subject_seed:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
             label="{seed}",
-            from_="{template}",
             datatype="anat",
             suffix="mask.nii.gz"
         ),
@@ -185,7 +174,6 @@ rule binarize_trim_subject_seed:
             **subj_wildcards,
             hemi="{hemi}",
             label="{seed}",
-            from_="{template}",
             suffix="binarizetrimsubjectseed.log"
         ),
     container:
@@ -227,9 +215,7 @@ rule create_voxel_seed_images:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
             label="{seed}",
-            from_=config["template"],
             datatype="anat",
             suffix="mask.nii.gz"
         ),
@@ -240,9 +226,7 @@ rule create_voxel_seed_images:
                     root=config["tmp_dir"],
                     **subj_wildcards,
                     hemi="{hemi}",
-                    space="individual",
                     label="{seed}",
-                    from_=config["template"],
                     datatype="dwi",
                     suffix="voxseeds"
                 )
@@ -276,10 +260,8 @@ rule track_from_voxels:
             root=config["tmp_dir"],
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
             label="{seed}",
             datatype="dwi",
-            from_=config["template"],
             suffix="voxseeds"
         ),
     params:
@@ -330,9 +312,7 @@ rule connectivity_from_voxels:
         targets=bids(
             root=root,
             **subj_wildcards,
-            space="individual",
             desc="{targets}",
-            from_=config["template"],
             datatype="anat",
             suffix="dseg.mif"
         ),
@@ -430,9 +410,7 @@ rule conn_csv_to_image:
             root=root,
             **subj_wildcards,
             hemi="{hemi}",
-            space="individual",
             label="{seed}",
-            from_=config["template"],
             datatype="anat",
             suffix="mask.nii.gz"
         ),
@@ -469,18 +447,18 @@ rule transform_conn_to_template:
         ),
         warp=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="warp.nii.gz",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             **subj_wildcards
         ),
         affine_xfm_itk=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="affine.txt",
             from_="subject",
-            to="{template}",
+            to=config["template"],
             desc="itk",
             **subj_wildcards
         ),
@@ -490,7 +468,7 @@ rule transform_conn_to_template:
             root=root,
             datatype="dwi",
             hemi="{hemi}",
-            space="{template}",
+            space=config["template"],
             desc="{targets}",
             label="{seed}",
             seedpervox="{seedpervox}",
@@ -506,7 +484,7 @@ rule transform_conn_to_template:
         bids(
             root="logs",
             hemi="{hemi}",
-            space="{template}",
+            space=config["template"],
             desc="{targets}",
             label="{seed}",
             seedpervox="{seedpervox}",
@@ -527,7 +505,7 @@ rule maxprob_conn:
             root=root,
             datatype="dwi",
             hemi="{hemi}",
-            space="{template}",
+            space=config["template"],
             desc="{targets}",
             label="{seed}",
             seedpervox="{seedpervox}",
@@ -539,7 +517,7 @@ rule maxprob_conn:
             root=root,
             datatype="dwi",
             hemi="{hemi}",
-            space="{template}",
+            space=config["template"],
             desc="{targets}",
             label="{seed}",
             seedpervox="{seedpervox}",

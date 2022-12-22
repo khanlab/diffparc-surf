@@ -29,7 +29,7 @@ rule run_synthseg_template:
         t1=os.path.join(workflow.basedir, "..", config["template_t1w"]),
     output:
         dseg=get_template_prefix(
-            root=root, subj_wildcards=subj_wildcards, template="{template}"
+            root=root, subj_wildcards=subj_wildcards, template=config["template"]
         )
         + "_desc-synthseg_dseg.nii.gz",
     container:
@@ -59,7 +59,6 @@ rule extract_synthseg_label:
         probseg=bids(
             root=root,
             hemi="{hemi}",
-            space="individual",
             label="{seed}",
             from_="synthseg",
             datatype="anat",
@@ -82,7 +81,6 @@ rule template_shape_injection:
         ref=bids(
             root=root,
             hemi="{hemi}",
-            space="individual",
             label="{seed}",
             from_="synthseg",
             datatype="anat",
@@ -100,23 +98,23 @@ rule template_shape_injection:
     output:
         warp=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="warp.nii.gz",
             hemi="{hemi}",
             label="{seed}",
             desc="shapeinject",
-            from_="{template}",
+            from_=config["template"],
             to="subject",
             **subj_wildcards
         ),
         invwarp=bids(
             root=root,
-            datatype="anat",
+            datatype="warps",
             suffix="invwarp.nii.gz",
             desc="shapeinject",
             hemi="{hemi}",
             label="{seed}",
-            from_="{template}",
+            from_=config["template"],
             to="subject",
             **subj_wildcards
         ),
@@ -124,10 +122,8 @@ rule template_shape_injection:
             root=root,
             datatype="anat",
             suffix="probseg.nii.gz",
-            space="individual",
             hemi="{hemi}",
             label="{seed}",
-            from_="{template}",
             desc="shapeinject",
             **subj_wildcards
         ),
@@ -145,7 +141,6 @@ rule template_shape_injection:
             suffix="shapeinject.log",
             hemi="{hemi}",
             label="{seed}",
-            template="{template}",
             **subj_wildcards
         ),
     shadow:

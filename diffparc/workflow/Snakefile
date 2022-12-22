@@ -23,6 +23,10 @@ inputs = snakebids.generate_inputs(
 # this adds constraints to the bids naming
 wildcard_constraints:
     **snakebids.get_wildcard_constraints(config["pybids_inputs"]),
+    seed="[a-zA-Z0-9]+",
+    metric="[a-zA-Z0-9]+",
+    hemi="L|R",
+    targets="[a-zA-Z0-9]+",
 
 
 # ---- end snakebids boilerplate ------------------------------------------------
@@ -270,7 +274,6 @@ def get_subj_tables_legacy():
                     bids(
                         root=root,
                         datatype="tabular",
-                        from_="{template}",
                         desc="{targets}",
                         label="{seed}",
                         seedspervertex="{seedspervertex}",
@@ -279,7 +282,6 @@ def get_subj_tables_legacy():
                         suffix="{suffix}.csv",
                         **subj_wildcards,
                     ),
-                    template=config["template"],
                     hemi=config["hemispheres"],
                     seed=seed,
                     targets=config["seeds"][seed]["targets"],
