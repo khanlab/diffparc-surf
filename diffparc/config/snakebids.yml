@@ -407,6 +407,7 @@ hemispheres:
 hemi_to_structure:
   L: CORTEX_LEFT
   R: CORTEX_RIGHT
+  LR: CORTEX
 
 surface_metrics:
   - inout

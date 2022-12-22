@@ -298,14 +298,32 @@ def get_subj_tables_legacy():
     return csvs
 
 
-rule all_subj_tables_legacy:
-    input:
-        get_subj_tables_legacy(),
+def get_subj_spec():
+    specs = []
+    for seed in config["select_seeds"]:
+        specs.extend(
+            expand(
+                expand(
+                    bids(
+                        root=root,
+                        datatype="surf",
+                        suffix="{seed}.spec",
+                        **subj_wildcards,
+                    ),
+                    seed=seed,
+                    allow_missing=True,
+                ),
+                zip,
+                **subj_zip_list,
+            )
+        )
+    return specs
 
 
 rule all:
     input:
-        rules.all_subj_tables_legacy.input,
+        get_subj_tables_legacy(),
+        get_subj_spec(),
     default_target: True
 
 
