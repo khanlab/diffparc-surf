@@ -83,13 +83,15 @@ rule create_surf_seed_csv:
             suffix="{seed}.surf.gii"
         ),
     output:
-        csv=bids(
-            root=root,
-            **subj_wildcards,
-            hemi="{hemi}",
-            datatype="tracts",
-            label="{seed}",
-            suffix="seeds.csv"
+        csv=temp(
+            bids(
+                root=root,
+                **subj_wildcards,
+                hemi="{hemi}",
+                datatype="tracts",
+                label="{seed}",
+                suffix="seeds.csv"
+            )
         ),
     group:
         "subj"
@@ -225,7 +227,7 @@ rule gen_vertex_conn_csv:
     output:
         conn_csv=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             label="{seed}",
@@ -246,7 +248,7 @@ rule conn_csv_to_metric:
     input:
         csv=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="{hemi}",
             desc="{targets}",
             label="{seed}",

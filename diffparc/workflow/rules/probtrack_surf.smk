@@ -16,13 +16,15 @@ rule extract_target_mask:
         ].index(wildcards.desc)
         + 1,
     output:
-        bids(
-            root=root,
-            **subj_wildcards,
-            targets="{targets}",
-            desc="{desc}",
-            datatype="anat",
-            suffix="mask.nii.gz"
+        temp(
+            bids(
+                root=root,
+                **subj_wildcards,
+                targets="{targets}",
+                desc="{desc}",
+                datatype="anat",
+                suffix="mask.nii.gz"
+            )
         ),
     container:
         config["singularity"]["itksnap"]
@@ -44,15 +46,17 @@ rule fix_sform_mask:
             **subj_wildcards
         ),
     output:
-        brain_mask=bids(
-            root=root,
-            suffix="mask.nii.gz",
-            desc="brain",
-            space="T1w",
-            res="upsampled",
-            fix="sform",
-            datatype="dwi",
-            **subj_wildcards
+        brain_mask=temp(
+            bids(
+                root=root,
+                suffix="mask.nii.gz",
+                desc="brain",
+                space="T1w",
+                res="upsampled",
+                fix="sform",
+                datatype="dwi",
+                **subj_wildcards
+            )
         ),
     group:
         "subj"
@@ -73,14 +77,16 @@ rule fix_sform_target:
             suffix="mask.nii.gz"
         ),
     output:
-        bids(
-            root=root,
-            **subj_wildcards,
-            targets="{targets}",
-            desc="{desc}",
-            fix="sform",
-            datatype="anat",
-            suffix="mask.nii.gz"
+        temp(
+            bids(
+                root=root,
+                **subj_wildcards,
+                targets="{targets}",
+                desc="{desc}",
+                fix="sform",
+                datatype="anat",
+                suffix="mask.nii.gz"
+            )
         ),
     group:
         "subj"
@@ -110,7 +116,8 @@ rule gen_targets_txt:
             root=root,
             **subj_wildcards,
             targets="{targets}",
-            datatype="anat",
+            datatype="tracts",
+            desc="probtrack",
             suffix="targets.txt"
         ),
     group:
@@ -137,7 +144,8 @@ rule run_probtrack_surface:
             root=root,
             **subj_wildcards,
             targets="{targets}",
-            datatype="anat",
+            datatype="tracts",
+            desc="probtrack",
             suffix="targets.txt"
         ),
         surf_gii=bids(
@@ -168,7 +176,7 @@ rule run_probtrack_surface:
                 label="{seed}",
                 desc="{targets}",
                 seedspervertex="{seedspervertex}",
-                datatype="surf",
+                datatype="tracts",
                 suffix="probtrack"
             )
         ),
@@ -179,7 +187,7 @@ rule run_probtrack_surface:
             label="{seed}",
             desc="{targets}",
             seedspervertex="{seedspervertex}",
-            datatype="surf",
+            datatype="tracts",
             suffix="probtrack/matrix_seeds_to_all_targets"
         ),
     group:
@@ -211,7 +219,7 @@ rule create_conn_csv_probtrack:
             label="{seed}",
             desc="{targets}",
             seedspervertex="{seedspervertex}",
-            datatype="surf",
+            datatype="tracts",
             suffix="probtrack/matrix_seeds_to_all_targets"
         ),
     params:
@@ -225,7 +233,7 @@ rule create_conn_csv_probtrack:
             label="{seed}",
             seedspervertex="{seedspervertex}",
             method="fslprobtrack",
-            datatype="surf",
+            datatype="tracts",
             suffix="conn.csv"
         ),
     group:

@@ -56,14 +56,16 @@ rule extract_synthseg_label:
         ],
         smoothing="1x1x1mm",  #sigma
     output:
-        probseg=bids(
-            root=root,
-            hemi="{hemi}",
-            label="{seed}",
-            from_="synthseg",
-            datatype="anat",
-            suffix="probseg.nii.gz",
-            **subj_wildcards,
+        probseg=temp(
+            bids(
+                root=root,
+                hemi="{hemi}",
+                label="{seed}",
+                desc="synthseg",
+                datatype="anat",
+                suffix="probseg.nii.gz",
+                **subj_wildcards,
+            )
         ),
     container:
         config["singularity"]["itksnap"]
@@ -82,7 +84,7 @@ rule template_shape_injection:
             root=root,
             hemi="{hemi}",
             label="{seed}",
-            from_="synthseg",
+            desc="synthseg",
             datatype="anat",
             suffix="probseg.nii.gz",
             **subj_wildcards,

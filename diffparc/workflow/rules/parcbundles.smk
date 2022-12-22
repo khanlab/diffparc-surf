@@ -154,19 +154,21 @@ rule sample_dti_from_parcbundle:
     params:
         stat_tck="-stat_tck {statsalong}",  #whether to use min, max, mean, median
     output:
-        sample_txt=bids(
-            root=root,
-            datatype="tracts",
-            hemi="{hemi}",
-            desc="{targets}",
-            parc="{parc}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            method="mrtrix",
-            suffix="sampledti.txt",
-            metric="{metric}",
-            statsalong="{statsalong}",
-            **subj_wildcards,
+        sample_txt=temp(
+            bids(
+                root=root,
+                datatype="tracts",
+                hemi="{hemi}",
+                desc="{targets}",
+                parc="{parc}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                method="mrtrix",
+                suffix="sampledti.txt",
+                metric="{metric}",
+                statsalong="{statsalong}",
+                **subj_wildcards,
+            )
         ),
     group:
         "subj"
@@ -433,16 +435,18 @@ rule threshold_tdi:
             **subj_wildcards,
         ),
     output:
-        mask=bids(
-            root=root,
-            datatype="tracts",
-            hemi="{hemi}",
-            desc="{targets}",
-            parc="{parc}",
-            label="{seed}",
-            seedspervertex="{seedspervertex}",
-            suffix="tdimask.nii.gz",
-            **subj_wildcards,
+        mask=temp(
+            bids(
+                root=root,
+                datatype="tracts",
+                hemi="{hemi}",
+                desc="{targets}",
+                parc="{parc}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                suffix="tdimask.nii.gz",
+                **subj_wildcards,
+            )
         ),
     group:
         "subj"

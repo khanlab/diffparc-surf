@@ -71,7 +71,7 @@ rule write_indepconn_metric_csv:
     input:
         csv_left=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="L",
             desc="{targets}",
             label="{seed}",
@@ -82,7 +82,7 @@ rule write_indepconn_metric_csv:
         ),
         csv_right=bids(
             root=root,
-            datatype="surf",
+            datatype="tracts",
             hemi="R",
             desc="{targets}",
             label="{seed}",

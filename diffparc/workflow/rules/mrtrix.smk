@@ -1,4 +1,3 @@
-# ----------- MRTRIX PREPROC BEGIN ------------#
 rule nii2mif:
     input:
         dwi=bids(
@@ -38,17 +37,21 @@ rule nii2mif:
             **subj_wildcards
         ),
     output:
-        dwi=bids(
-            root=root,
-            datatype="dwi",
-            suffix="dwi.mif",
-            **subj_wildcards,
+        dwi=temp(
+            bids(
+                root=root,
+                datatype="dwi",
+                suffix="dwi.mif",
+                **subj_wildcards,
+            )
         ),
-        mask=bids(
-            root=root,
-            datatype="dwi",
-            suffix="mask.mif",
-            **subj_wildcards,
+        mask=temp(
+            bids(
+                root=root,
+                datatype="dwi",
+                suffix="mask.mif",
+                **subj_wildcards,
+            )
         ),
     threads: 4
     resources:
@@ -60,6 +63,19 @@ rule nii2mif:
     shell:
         "mrconvert {input.dwi} {output.dwi} -fslgrad {input.bvec} {input.bval} -nthreads {threads} && "
         "mrconvert {input.mask} {output.mask} -nthreads {threads}"
+
+
+rule dseg_nii2mif:
+    input:
+        "{file}_dseg.nii.gz",
+    output:
+        temp("{file}_dseg.mif"),
+    container:
+        config["singularity"]["mrtrix"]
+    group:
+        "subj"
+    shell:
+        "mrconvert {input} {output} -nthreads {threads}"
 
 
 rule dwi2response_msmt:
@@ -261,85 +277,6 @@ rule dwi2tensor:
         "dwi2tensor {input} {output}"
 
 
-rule tensor2metrics:
-    input:
-        tensor=rules.dwi2tensor.output.tensor,
-        mask=rules.nii2mif.output.mask,
-    output:
-        fa=bids(
-            root=root,
-            datatype="dwi",
-            suffix="fa.mif",
-            **subj_wildcards,
-        ),
-    group:
-        "subj"
-    threads: 8
-    resources:
-        mem_mb=32000,
-    container:
-        config["singularity"]["mrtrix"]
-    shell:
-        "tensor2metric -fa {output.fa} -mask {input.mask} {input.tensor}"
-
-
-# -------------- MRTRIX PREPROC END ----------------#
-
-
-# ----------- MRTRIX TRACTOGRAPHY BEGIN ------------#
-rule create_seed:
-    input:
-        rules.tensor2metrics.output.fa,
-    params:
-        threshold=0.15,
-    output:
-        seed=bids(
-            root=root,
-            datatype="dwi",
-            suffix="seed.mif",
-            **subj_wildcards,
-        ),
-    threads: 8
-    resources:
-        mem_mb=32000,
-    group:
-        "subj"
-    container:
-        config["singularity"]["mrtrix"]
-    shell:
-        "mrthreshold {input} -abs {params.threshold} {output}"
-
-
-rule tckgen:
-    # Tournier, J.-D.; Calamante, F. & Connelly, A. Improved probabilistic streamlines tractography by 2nd order integration over fibre orientation distributions. Proceedings of the International Society for Magnetic Resonance in Medicine, 2010, 1670
-    input:
-        wm_fod=rules.mtnormalise.output.wm_fod,
-        dwi=rules.nii2mif.output.dwi,
-        mask=rules.nii2mif.output.mask,
-        seed=rules.create_seed.output.seed,
-    params:
-        streamlines=5000,
-        seed_strategy=lambda wildcards, input: f"-seed_image {input.seed}",
-    output:
-        tck=bids(
-            root=root,
-            datatype="dwi",
-            desc="iFOD2",
-            suffix="tractography.tck",
-            **subj_wildcards,
-        ),
-    threads: 32
-    resources:
-        mem_mb=128000,
-        time=1440,
-    group:
-        "subj"
-    container:
-        config["singularity"]["mrtrix"]
-    shell:
-        "tckgen -nthreads {threads} -algorithm iFOD2 -mask {input.mask} {params.seed_strategy} -select {params.streamlines} {input.wm_fod} {output.tck}"
-
-
 rule dwi_to_tensor:
     input:
         dwi=rules.nii2mif.output.dwi,
@@ -388,3 +325,28 @@ rule tensor_to_metrics:
         config["singularity"]["mrtrix"]
     shell:
         "tensor2metric -mask {input.mask} -fa {output.fa} -adc {output.md} {input.tensor}"
+
+
+def get_fod_for_tracking(wildcards):
+    if config["fod_algorithm"] == "csd":
+        return (
+            bids(
+                root=root,
+                datatype="dwi",
+                alg="csd",
+                desc="wm",
+                suffix="fod.mif",
+                **subj_wildcards,
+            ),
+        )
+    elif config["fod_algorithm"] == "msmt_csd":
+        return (
+            bids(
+                root=root,
+                datatype="dwi",
+                desc="wmnorm",
+                alg="msmt",
+                suffix="fod.mif",
+                **subj_wildcards,
+            ),
+        )
