@@ -57,39 +57,13 @@ rule set_surface_structure:
         "wb_command -set-structure {output} {params.structure} -surface-type ANATOMICAL"
 
 
-def get_subject_seg_for_shapereg(wildcards):
-    if config["seeds"][wildcards.seed]["use_synthseg"]:
-        return (
-            bids(
-                root=root,
-                datatype="anat",
-                suffix="probseg.nii.gz",
-                hemi="{hemi}",
-                label="{seed}",
-                desc="shapeinject",
-                **subj_wildcards
-            ),
-        )
-    else:
-        return (
-            bids(
-                root=root,
-                **subj_wildcards,
-                hemi="{hemi}",
-                label="{seed}",
-                datatype="anat",
-                suffix="probseg.nii.gz"
-            ),
-        )
-
-
 rule rigid_shape_reg:
     """ rigidly register subj to template shape using moment-invariants """
     input:
         template=lambda wildcards: os.path.join(
             workflow.basedir, "..", config["seeds"][wildcards.seed]["template_probseg"]
         ),
-        target=get_subject_seg_for_shapereg,
+        target=get_subject_seed_probseg,
     params:
         general_opts="-d 3",
         rigid_opts="-m SSD -moments 2 -det 1",

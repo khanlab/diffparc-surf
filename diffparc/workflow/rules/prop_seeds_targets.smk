@@ -145,3 +145,69 @@ rule transform_targets_to_subject:
     threads: 8
     shell:
         "antsApplyTransforms -d 3 --interpolation NearestNeighbor -i {input.targets} -o {output} -r {input.ref} -t [{input.affine_xfm_itk},1] {input.inv_warp}  &> {log}"
+
+
+rule reslice_shapeinject_to_ref:
+    input:
+        probseg=bids(
+            root=root,
+            datatype="anat",
+            suffix="probseg.nii.gz",
+            hemi="{hemi}",
+            label="{seed}",
+            desc="shapeinject",
+            **subj_wildcards
+        ),
+        ref=bids(
+            root=root,
+            suffix="mask.nii.gz",
+            desc="brain",
+            space="T1w",
+            res="upsampled",
+            datatype="dwi",
+            **subj_wildcards
+        ),
+    output:
+        probseg=temp(
+            bids(
+                root=root,
+                datatype="anat",
+                suffix="probseg.nii.gz",
+                hemi="{hemi}",
+                label="{seed}",
+                desc="shapeinjectupsampled",
+                **subj_wildcards
+            )
+        ),
+    container:
+        config["singularity"]["itksnap"]
+    group:
+        "subj"
+    shell:
+        "c3d {input.ref} {input.probseg} -reslice-identity -o {output.probseg}"
+
+
+def get_subject_seed_upsampled_probseg(wildcards):
+    if config["seeds"][wildcards.seed]["use_synthseg"]:
+        return (
+            bids(
+                root=root,
+                datatype="anat",
+                suffix="probseg.nii.gz",
+                hemi="{hemi}",
+                label="{seed}",
+                desc="shapeinjectupsampled",
+                **subj_wildcards
+            ),
+        )
+    else:
+        return (
+            bids(
+                root=root,
+                **subj_wildcards,
+                hemi="{hemi}",
+                label="{seed}",
+                datatype="anat",
+                suffix="probseg.nii.gz"
+            ),
+        )

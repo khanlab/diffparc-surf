@@ -606,7 +606,6 @@ rule calc_surface_area_metric:
             root=root, subj_wildcards=subj_wildcards, template=config["template"]
         )
         + "_hemi-{hemi}_{seed}.surf.gii",
-
     output:
         metric=bids(
             root=root,

@@ -151,3 +151,29 @@ rule template_shape_injection:
         "greedy -d 3 -threads {threads} -a -moments 2 -det 1 -m SSD {params.input_fixed_moving} -o affine.txt -n {params.affine_iterations} &> {log} && "
         "greedy -d 3 -threads {threads} -it affine.txt -m SSD  {params.input_fixed_moving} -o {output.warp} -oinv {output.invwarp} -n {params.fluid_iterations} -s {params.gradient_sigma} {params.warp_sigma} -e {params.timestep} &>> {log} && "
         "greedy -d 3 -threads {threads} -rf {input.ref} {params.input_moving_warped} -r {output.warp} affine.txt  &>> {log}"
+
+
+def get_subject_seed_probseg(wildcards):
+    if config["seeds"][wildcards.seed]["use_synthseg"]:
+        return (
+            bids(
+                root=root,
+                datatype="anat",
+                suffix="probseg.nii.gz",
+                hemi="{hemi}",
+                label="{seed}",
+                desc="shapeinject",
+                **subj_wildcards
+            ),
+        )
+    else:
+        return (
+            bids(
+                root=root,
+                **subj_wildcards,
+                hemi="{hemi}",
+                label="{seed}",
+                datatype="anat",
+                suffix="probseg.nii.gz"
+            ),
+        )

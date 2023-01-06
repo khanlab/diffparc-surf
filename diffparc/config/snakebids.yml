@@ -376,6 +376,7 @@ seeds:
     seeds_per_vertex:
       - 5000
     normalize_percentile: False
+    vol_seed_res: '1x1x1mm'
   vtasnc:
     template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/vtasnc_hemi-{hemi}_probseg.nii.gz
     probseg_threshold: 0.5
@@ -387,6 +388,7 @@ seeds:
     seeds_per_vertex:
       - 5000
     normalize_percentile: 95 #normalize connectivity to each target before maxprob
+    vol_seed_res: '0.5x0.5x0.5mm'
 
 synthseg_labels:
   striatum:
@@ -417,13 +419,18 @@ surface_metrics:
     #  - MD
 
 methods:
-  - mrtrix
+  #  - mrtrix
   - fslprobtrack
 
 
 #tractography parameters
 fod_algorithm: csd #msmt_csd
-resample_seed_res: 2x2x2mm
+
+
+resample_seed_res: '1x1x1mm' #for resampling seeds/targets
+
+#voxel-based-seeding tractography (can move these to structure-specific config later..)
+
 seeds_per_voxel: 
  - 500
 

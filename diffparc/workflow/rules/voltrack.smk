@@ -1,15 +1,9 @@
 rule binarize_trim_subject_seed:
     input:
-        seed_res=bids(
-            root=root,
-            **subj_wildcards,
-            hemi="{hemi}",
-            label="{seed}",
-            datatype="anat",
-            suffix="probseg.nii.gz"
-        ),
+        seed=get_subject_seed_probseg,  #grabs either shapeinject or atlasreg probseg
     params:
         threshold=lambda wildcards: config["seeds"][wildcards.seed]["probseg_threshold"],
+        resample_res=lambda wildcards: config["seeds"][wildcards.seed]["vol_seed_res"],
     output:
         seed_thr=bids(
             root=root,
@@ -32,7 +26,7 @@ rule binarize_trim_subject_seed:
     group:
         "subj"
     shell:
-        "c3d {input.seed_res} -threshold 0.5 inf 1 0 -trim 0vox -type uchar -o {output} &> {log}"
+        "c3d {input} -threshold 0.5 inf 1 0 -resample-mm {params.resample_res} -trim 0vox -type uchar -o {output} &> {log}"
 
 
 rule create_voxel_seed_images:
@@ -246,7 +240,7 @@ rule conn_csv_to_image:
         "../scripts/conn_csv_to_image.py"
 
 
-rule transform_conn_to_template:
+rule nlin_transform_conn_to_template:
     input:
         conn_nii=bids(
             root=root,
@@ -311,7 +305,99 @@ rule transform_conn_to_template:
         "antsApplyTransforms -d 3 -e 3  --interpolation NearestNeighbor -i {input.conn_nii}  -o {output.conn_nii}  -r {input.ref} -t {input.warp} -t {input.affine_xfm_itk} &> {log} "
 
 
-rule maxprob_conn:
+rule linear_transform_conn_to_template:
+    input:
+        conn_nii=bids(
+            root=root,
+            datatype="dwi",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedpervox="{seedpervox}",
+            suffix="conn.nii.gz",
+            **subj_wildcards,
+        ),
+        affine_xfm_itk=bids(
+            root=root,
+            datatype="warps",
+            suffix="affine.txt",
+            from_="subject",
+            to=config["template"],
+            desc="itk",
+            **subj_wildcards
+        ),
+        ref=os.path.join(workflow.basedir, "..", config["template_t1w"]),
+    output:
+        conn_nii=bids(
+            root=root,
+            datatype="dwi",
+            hemi="{hemi}",
+            space=config["template"],
+            warp="linear",
+            desc="{targets}",
+            label="{seed}",
+            seedpervox="{seedpervox}",
+            suffix="conn.nii.gz",
+            **subj_wildcards,
+        ),
+    container:
+        config["singularity"]["ants"]
+    threads: 8
+    resources:
+        mem_mb=8000,
+    log:
+        bids(
+            root="logs",
+            hemi="{hemi}",
+            space=config["template"],
+            warp="linear",
+            desc="{targets}",
+            label="{seed}",
+            seedpervox="{seedpervox}",
+            suffix="transformconntotemplate.log",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    shell:
+        #using nearestneighbor to avoid bluring with background -- background set as -1
+        "antsApplyTransforms -d 3 -e 3  --interpolation NearestNeighbor -i {input.conn_nii}  -o {output.conn_nii}  -r {input.ref} -t {input.affine_xfm_itk} &> {log} "
+
+
+rule maxprob_conn_native:
+    """ generate maxprob connectivity, adding outside striatum, and inside striatum (at a particular "streamline count" threshold) to identify unlabelled regions """
+    input:
+        conn_nii=bids(
+            root=root,
+            datatype="dwi",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedpervox="{seedpervox}",
+            suffix="conn.nii.gz",
+            **subj_wildcards,
+        ),
+    output:
+        conn_nii=bids(
+            root=root,
+            datatype="dwi",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedpervox="{seedpervox}",
+            segtype="maxprob",
+            suffix="dseg.nii.gz",
+            **subj_wildcards,
+        ),
+    container:
+        config["singularity"]["itksnap"]
+    group:
+        "subj"
+    shell:
+        "c4d {input} -slice w 0:-1 -vote -o {output} "
+
+
+rule maxprob_conn_linMNI:
     """ generate maxprob connectivity, adding outside striatum, and inside striatum (at a particular "streamline count" threshold) to identify unlabelled regions """
     input:
         conn_nii=bids(
@@ -319,6 +405,7 @@ rule maxprob_conn:
             datatype="dwi",
             hemi="{hemi}",
             space=config["template"],
+            warp="linear",
             desc="{targets}",
             label="{seed}",
             seedpervox="{seedpervox}",
@@ -331,6 +418,7 @@ rule maxprob_conn:
             datatype="dwi",
             hemi="{hemi}",
             space=config["template"],
+            warp="linear",
             desc="{targets}",
             label="{seed}",
             seedpervox="{seedpervox}",
