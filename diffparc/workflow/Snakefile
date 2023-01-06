@@ -152,33 +152,6 @@ rule all_diffparc:
         ),
 
 
-rule all_surfmorph:
-    input:
-        surfdisp=expand(
-            expand(
-                bids(
-                    root=root,
-                    **subj_wildcards,
-                    from_="{template}",
-                    datatype="surf",
-                    label="{seed}",
-                    parcel="{targets}",
-                    seedspervertex="{seedspervertex}",
-                    suffix="{metric}.pscalar.nii",
-                ),
-                template=config["template"],
-                hemi=config["hemispheres"],
-                seed=config["seeds"].keys(),
-                targets=config["targets"].keys(),
-                seedspervertex=config["seeds_per_vertex"],
-                metric=config["surface_metrics"],
-                allow_missing=True,
-            ),
-            zip,
-            **subj_zip_list,
-        ),
-
-
 rule all_group_dscalar:
     input:
         cifti_dscalar_group=expand(
@@ -237,31 +210,6 @@ rule all_preprocdwi:
             ),
             zip,
             **subj_zip_list
-        ),
-
-
-rule all_legacy_csv:
-    input:
-        csv=expand(
-            bids(
-                root=root,
-                subject="group",
-                datatype="tabular",
-                from_="{template}",
-                desc="{targets}",
-                label="{seed}",
-                seedspervertex="{seedspervertex}",
-                method="{method}",
-                form="{form}",
-                suffix="{suffix}.csv",
-            ),
-            template=config["template"],
-            targets=config["targets"].keys(),
-            seedspervertex=config["seeds_per_vertex"],
-            seed=config["seeds"],
-            method=config["methods"],
-            form="legacy",
-            suffix=config["surface_metrics"],
         ),
 
 

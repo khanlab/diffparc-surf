@@ -602,13 +602,11 @@ rule parcellate_cifti_metric:
 
 rule calc_surface_area_metric:
     input:
-        surf_warped=bids(
-            root=root,
-            **subj_wildcards,
-            hemi="{hemi}",
-            datatype="surf",
-            suffix="{seed}.surf.gii"
-        ),
+        template_surf=get_template_prefix(
+            root=root, subj_wildcards=subj_wildcards, template=config["template"]
+        )
+        + "_hemi-{hemi}_{seed}.surf.gii",
+
     output:
         metric=bids(
             root=root,

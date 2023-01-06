@@ -368,13 +368,13 @@ seeds:
   striatum:
     template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/striatum_hemi-{hemi}_probseg.nii.gz
     probseg_threshold: 0.5
-    surface_decimate_percent: 80
+    surface_decimate_percent: 0
     use_synthseg: True 
     targets:
       - harvardoxford6
     streamline_threshold: 50
     seeds_per_vertex:
-      - 500
+      - 5000
     normalize_percentile: False
   vtasnc:
     template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/vtasnc_hemi-{hemi}_probseg.nii.gz
@@ -385,7 +385,7 @@ seeds:
       - harvardoxford4
     streamline_threshold: 20
     seeds_per_vertex:
-      - 500
+      - 5000
     normalize_percentile: 95 #normalize connectivity to each target before maxprob
 
 synthseg_labels:
@@ -410,15 +410,15 @@ hemi_to_structure:
   LR: CORTEX
 
 surface_metrics:
-  - inout
+  #  - inout
   - surfarea
-  - indepconn
-  - FA
-  - MD
+    # - indepconn
+    #  - FA
+    #  - MD
 
 methods:
   - mrtrix
-    #  - fslprobtrack
+  - fslprobtrack
 
 
 #tractography parameters
@@ -426,11 +426,8 @@ fod_algorithm: csd #msmt_csd
 resample_seed_res: 2x2x2mm
 seeds_per_voxel: 
  - 500
-seeds_per_vertex:
- - 500
 
 surfdisp_normalization_fwhm_mm: 8
-surface_decimate_percent: 90 #reduce X% of the vertices
 
 #for test data
 participant_label: 
