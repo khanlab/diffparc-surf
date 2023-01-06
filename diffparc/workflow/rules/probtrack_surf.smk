@@ -41,7 +41,7 @@ rule fix_sform_mask:
             suffix="mask.nii.gz",
             desc="brain",
             space="T1w",
-            res="upsampled",
+            res=config["resample_dwi"]["resample_scheme"],
             datatype="dwi",
             **subj_wildcards
         ),
@@ -52,7 +52,7 @@ rule fix_sform_mask:
                 suffix="mask.nii.gz",
                 desc="brain",
                 space="T1w",
-                res="upsampled",
+                res=config["resample_dwi"]["resample_scheme"],
                 fix="sform",
                 datatype="dwi",
                 **subj_wildcards
@@ -155,16 +155,40 @@ rule run_probtrack_surface:
             datatype="surf",
             suffix="{seed}.surf.gii"
         ),
-        brain_mask=bids(
+        dwi_brain_mask=bids(
             root=root,
             suffix="mask.nii.gz",
             desc="brain",
             space="T1w",
-            res="upsampled",
+            res=config["resample_dwi"]["resample_scheme"],
             fix="sform",
             datatype="dwi",
             **subj_wildcards
         ),
+        seed_target_brain_mask=bids(
+            root=root,
+            suffix="mask.nii.gz",
+            desc="brain",
+            space="T1w",
+            res='upsampled',
+            fix="sform",
+            datatype="dwi",
+            **subj_wildcards
+        ),
+        targets=lambda wildcards: expand(
+            bids(
+                root=root,
+                **subj_wildcards,
+                targets="{targets}",
+                desc="{desc}",
+                fix="sform",
+                datatype="anat",
+                suffix="mask.nii.gz"
+            ),
+            desc=config["targets"][wildcards.targets]["labels"],
+            allow_missing=True,
+        ),
+
     params:
         seeds_per_vertex="{seedspervertex}",
     output:
@@ -195,15 +219,15 @@ rule run_probtrack_surface:
     shell:
         "probtrackx2 "
         " -x {input.surf_gii} "
-        " -m {input.brain_mask} "
+        " -m {input.dwi_brain_mask} "
         " -s {input.bedpost_dir}/merged "
         " --dir={output.out_tract_dir} "
         " --targetmasks={input.target_txt} "
         " --forcedir "
         " --opd --os2t  --s2tastext "
-        " --seedref={input.brain_mask}"
+        " --seedref={input.seed_target_brain_mask}"
         " --omatrix2 "
-        " --target2={input.brain_mask}"
+        " --target2={input.seed_target_brain_mask}"
         " --randfib=2 "
         " -V 0 "
         " -l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 "

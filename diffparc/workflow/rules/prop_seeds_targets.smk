@@ -39,7 +39,7 @@ rule transform_seed_to_subject:
             suffix="mask.nii.gz",
             desc="brain",
             space="T1w",
-            res="upsampled",
+            res='upsampled',
             datatype="dwi",
             **subj_wildcards
         ),
@@ -100,7 +100,7 @@ rule transform_targets_to_subject:
             suffix="mask.nii.gz",
             desc="brain",
             space="T1w",
-            res=config["resample_dwi"]["resample_scheme"],
+            res='upsampled',
             datatype="dwi",
             **subj_wildcards
         ),
