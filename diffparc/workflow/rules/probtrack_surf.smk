@@ -41,7 +41,7 @@ rule fix_sform_mask:
             suffix="mask.nii.gz",
             desc="brain",
             space="T1w",
-            res=config["resample_dwi"]["resample_scheme"],
+            res="{res}",
             datatype="dwi",
             **subj_wildcards
         ),
@@ -52,7 +52,7 @@ rule fix_sform_mask:
                 suffix="mask.nii.gz",
                 desc="brain",
                 space="T1w",
-                res=config["resample_dwi"]["resample_scheme"],
+                res="{res}",
                 fix="sform",
                 datatype="dwi",
                 **subj_wildcards
@@ -170,7 +170,7 @@ rule run_probtrack_surface:
             suffix="mask.nii.gz",
             desc="brain",
             space="T1w",
-            res='upsampled',
+            res="upsampled",
             fix="sform",
             datatype="dwi",
             **subj_wildcards
@@ -188,7 +188,6 @@ rule run_probtrack_surface:
             desc=config["targets"][wildcards.targets]["labels"],
             allow_missing=True,
         ),
-
     params:
         seeds_per_vertex="{seedspervertex}",
     output:
