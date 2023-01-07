@@ -165,7 +165,6 @@ def get_inputs_spec_file(wildcards):
     )
 
     conn_suffixes = ["maxprob.dlabel.nii", "conn.dscalar.nii"]
-    conn_suffixes.extend([f"{dti}.dscalar.nii" for dti in dti_metrics])
 
     inputs_dict["LR"].extend(
         expand(
@@ -183,6 +182,29 @@ def get_inputs_spec_file(wildcards):
             seedspervertex=config["seeds"][wildcards.seed]["seeds_per_vertex"],
             method=config["methods"],
             suffix=conn_suffixes,
+            **wildcards,
+        )
+    )
+
+    dti_suffixes = [f"{dti}.dscalar.nii" for dti in dti_metrics]
+    methods_dti = list(set(config["methods"]).intersection({"mrtrix"}))
+
+    inputs_dict["LR"].extend(
+        expand(
+            bids(
+                root=root,
+                datatype="surf",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                method="{method}",
+                suffix="{suffix}",
+                **subj_wildcards,
+            ),
+            targets=config["seeds"][wildcards.seed]["targets"],
+            seedspervertex=config["seeds"][wildcards.seed]["seeds_per_vertex"],
+            method=methods_dti,
+            suffix=dti_suffixes,
             **wildcards,
         )
     )

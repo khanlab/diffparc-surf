@@ -221,6 +221,37 @@ def get_vol_subj_tables_legacy():
 def get_surf_subj_tables_legacy():
     csvs = []
     for seed in config["select_seeds"]:
+        # dti metrics (currently only mrtrix):
+        csvs.extend(
+            expand(
+                expand(
+                    bids(
+                        root=root,
+                        datatype="tabular",
+                        desc="{targets}",
+                        label="{seed}",
+                        seedspervertex="{seedspervertex}",
+                        method="{method}",
+                        form="{form}",
+                        suffix="{suffix}.csv",
+                        **subj_wildcards,
+                    ),
+                    hemi=config["hemispheres"],
+                    seed=seed,
+                    targets=config["seeds"][seed]["targets"],
+                    seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
+                    method=list(set(config["methods"]).intersection({"mrtrix"})),
+                    form=["legacy"],
+                    suffix=list(
+                        set(config["surface_metrics"]).intersection({"FA", "MD"})
+                    ),
+                    allow_missing=True,
+                ),
+                zip,
+                **subj_zip_list,
+            )
+        )
+        # rest of the metrics
         csvs.extend(
             expand(
                 expand(
@@ -241,13 +272,16 @@ def get_surf_subj_tables_legacy():
                     seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
                     method=config["methods"],
                     form=["legacy"],
-                    suffix=config["surface_metrics"],
+                    suffix=list(
+                        set(config["surface_metrics"]).difference({"FA", "MD"})
+                    ),
                     allow_missing=True,
                 ),
                 zip,
                 **subj_zip_list,
             )
         )
+
     return csvs
 
 
