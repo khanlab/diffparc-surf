@@ -47,6 +47,8 @@ rule fix_sform_seed:
         ),
     group:
         "subj"
+    container:
+        config["singularity"]["fsl"]
     shell:
         "cp {input} {output} && "
         "QFORM=`fslorient -getqform {output}` && "
@@ -142,6 +144,8 @@ rule run_probtrack_volume:
         ),
     group:
         "subj"
+    container:
+        config["singularity"]["fsl"]
     shell:
         "probtrackx2 "
         " -x {input.seed_nii} "
@@ -158,3 +162,68 @@ rule run_probtrack_volume:
         " -V 0 "
         " -l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 "
         " -P {params.seeds_per_vox} --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 "
+
+
+rule merge_seed_conn_files:
+    input:
+        tract_dir=bids(
+            root=root,
+            **subj_wildcards,
+            hemi="{hemi}",
+            label="{seed}",
+            desc="{targets}",
+            seedspervox="{seedspervox}",
+            datatype="tracts",
+            suffix="probtrack"
+        ),
+    params:
+        seed_conn_files=lambda wildcards, input: [
+            f"{input.tract_dir}/seeds_to_{fname}"
+            for fname in expand(
+                bids(
+                    include_subject_dir=False,
+                    include_session_dir=False,
+                    **subj_wildcards,
+                    targets="{targets}",
+                    desc="{desc}",
+                    fix="sform",
+                    suffix="mask.nii.gz",
+                ),
+                desc=config["targets"][wildcards.targets]["labels"],
+                **wildcards,
+            )
+        ],
+    output:
+        conn_nii=bids(
+            root=root,
+            datatype="tracts",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervox="{seedspervox}",
+            method="fsl",
+            suffix="conn.nii.gz",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["fsl"]
+    shell:
+        "fslmerge -t {output} {params.seed_conn_files}"
+
+
+# rule add_background_conn:
+#    """ this adds the first channel (background - zero conn) so we can use voting to label"""
+#    input:
+#        conn_nii=bids(
+#            root=root,
+#            datatype="tracts",
+#            hemi="{hemi}",
+#            desc="{targets}",
+#            label="{seed}",
+#            seedspervox="{seedspervox}",
+#            method='fsl',
+#            suffix="conn.nii.gz",
+#            **subj_wildcards,
+#        ),

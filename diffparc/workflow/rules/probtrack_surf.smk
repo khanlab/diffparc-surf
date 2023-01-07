@@ -215,6 +215,8 @@ rule run_probtrack_surface:
         ),
     group:
         "subj"
+    container:
+        config["singularity"]["fsl"]
     shell:
         "probtrackx2 "
         " -x {input.surf_gii} "
