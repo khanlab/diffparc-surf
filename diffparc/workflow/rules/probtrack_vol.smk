@@ -55,6 +55,39 @@ rule fix_sform_seed:
         "fslorient -setsform $QFORM {output}"
 
 
+rule create_seed_bg:
+    input:
+        seed_nii=bids(
+            root=root,
+            datatype="tracts",
+            suffix="mask.nii.gz",
+            hemi="{hemi}",
+            label="{seed}",
+            desc="seed",
+            fix="sform",
+            **subj_wildcards
+        ),
+    output:
+        seed_nii=temp(
+            bids(
+                root=root,
+                datatype="tracts",
+                suffix="mask.nii.gz",
+                hemi="{hemi}",
+                label="{seed}",
+                desc="seedbg",
+                fix="sform",
+                **subj_wildcards
+            )
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["itksnap"]
+    shell:
+        "c3d {input} -replace 1 0 0 1 -o {output}"
+
+
 rule run_probtrack_volume:
     input:
         bedpost_dir=bids(
@@ -176,6 +209,16 @@ rule merge_seed_conn_files:
             datatype="tracts",
             suffix="probtrack"
         ),
+        seed_bg=bids(
+            root=root,
+            datatype="tracts",
+            suffix="mask.nii.gz",
+            hemi="{hemi}",
+            label="{seed}",
+            desc="seedbg",
+            fix="sform",
+            **subj_wildcards
+        ),
     params:
         seed_conn_files=lambda wildcards, input: [
             f"{input.tract_dir}/seeds_to_{fname}"
@@ -210,20 +253,38 @@ rule merge_seed_conn_files:
     container:
         config["singularity"]["fsl"]
     shell:
-        "fslmerge -t {output} {params.seed_conn_files}"
+        "fslmerge -t {output} {input.seed_bg} {params.seed_conn_files}"
 
 
-# rule add_background_conn:
-#    """ this adds the first channel (background - zero conn) so we can use voting to label"""
-#    input:
-#        conn_nii=bids(
-#            root=root,
-#            datatype="tracts",
-#            hemi="{hemi}",
-#            desc="{targets}",
-#            label="{seed}",
-#            seedspervox="{seedspervox}",
-#            method='fsl',
-#            suffix="conn.nii.gz",
-#            **subj_wildcards,
-#        ),
+rule maxprob_conn_probtrack_native:
+    input:
+        conn_nii=bids(
+            root=root,
+            datatype="tracts",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervox="{seedspervox}",
+            method="fsl",
+            suffix="conn.nii.gz",
+            **subj_wildcards,
+        ),
+    output:
+        conn_nii=bids(
+            root=root,
+            datatype="tracts",
+            hemi="{hemi}",
+            desc="{targets}",
+            label="{seed}",
+            seedspervox="{seedspervox}",
+            method="fsl",
+            segtype="maxprob",
+            suffix="dseg.nii.gz",
+            **subj_wildcards,
+        ),
+    container:
+        config["singularity"]["itksnap"]
+    group:
+        "subj"
+    shell:
+        "c4d {input} -slice w 0:-1 -vote -o {output} "
