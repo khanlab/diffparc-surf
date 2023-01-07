@@ -11,7 +11,11 @@ do
 mkdir -p ${dagtype}
 poetry run diffparc $test_data $tmp_dir/out participant --${dagtype} | dot -Tpdf > ${dagtype}/${dagtype}_default.pdf
 
-poetry run diffparc $test_data $tmp_dir/out participant --${dagtype} --config methods=['mrtrix','fslprobtrack'] surface_metrics=['surfarea','inout','indepconn'] | dot -Tpdf > ${dagtype}/${dagtype}_fsl_mrtrix.pdf
+poetry run diffparc $test_data $tmp_dir/out participant --${dagtype} --in-snakedwi-dir $snakedwi_dir --config methods=['mrtrix','fsl'] | dot -Tpdf > ${dagtype}/${dagtype}_fsl_mrtrix.pdf
+
+poetry run diffparc $test_data $tmp_dir/out participant --${dagtype} --in-snakedwi-dir $snakedwi_dir --config methods=['mrtrix'] | dot -Tpdf > ${dagtype}/${dagtype}_mrtrix.pdf
+
+poetry run diffparc $test_data $tmp_dir/out participant --${dagtype} --in-snakedwi-dir $snakedwi_dir --config methods=['fsl'] | dot -Tpdf > ${dagtype}/${dagtype}_fsl.pdf
 
 poetry run diffparc $test_data $tmp_dir/out participant --${dagtype} --use-eddy | dot -Tpdf > ${dagtype}/${dagtype}_use_eddy.pdf
 
