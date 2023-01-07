@@ -58,6 +58,8 @@ rule fix_sform_mask:
                 **subj_wildcards
             )
         ),
+    container:
+        config["singularity"]["fsl"]
     group:
         "subj"
     shell:
@@ -88,6 +90,8 @@ rule fix_sform_target:
                 suffix="mask.nii.gz"
             )
         ),
+    container:
+        config["singularity"]["fsl"]
     group:
         "subj"
     shell:
