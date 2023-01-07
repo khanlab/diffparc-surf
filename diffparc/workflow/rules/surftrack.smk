@@ -454,9 +454,10 @@ rule mask_maxprob_by_sumconn_threshold:
             **subj_wildcards,
         ),
     params:
-        threshold=lambda wildcards: config["seeds"][wildcards.seed][
-            "streamline_threshold"
-        ],
+        threshold=lambda wildcards: float(
+            config["seeds"][wildcards.seed]["streamline_threshold_percent"]
+        )
+        / float(wildcards.seedspervertex),
     output:
         masked=temp(
             bids(

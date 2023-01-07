@@ -168,16 +168,6 @@ parse_args:
       - 'msmt_csd '
     default: 'csd'
 
-  --seeds_per_vertex:
-    help: 'Number of streamline seeds per vertex  (default: %(default)s)'
-    nargs: '+'
-    default: 
-      - 500
-
-  --surface_decimate_percent:
-    help: 'Target percentage of original mesh vertices to remove, e.g. higher values result in lower number of vertices in template surface (default: %(default)s)'
-    default: 80
-
   --stat_along_tcks:
     help: 'Statistic to use aggregating DTI metrics along each streamline (default: %(default)s)'
     nargs: '?'
@@ -373,11 +363,12 @@ seeds:
     use_synthseg: True 
     targets:
       - harvardoxford6
-    streamline_threshold: 50
+    streamline_threshold_percent: 10
     seeds_per_vertex:
-      - 5000
+      - 50
+    seeds_per_voxel:
+      - 50
     normalize_percentile: False
-    vol_seed_res: '1x1x1mm'
   vtasnc:
     template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/vtasnc_hemi-{hemi}_probseg.nii.gz
     probseg_threshold: 0.5
@@ -385,11 +376,12 @@ seeds:
     use_synthseg: False
     targets: 
       - harvardoxford4
-    streamline_threshold: 20
+    streamline_threshold_percent: 4
     seeds_per_vertex:
-      - 5000
+      - 50
+    seeds_per_voxel:
+      - 50
     normalize_percentile: 95 #normalize connectivity to each target before maxprob
-    vol_seed_res: '0.5x0.5x0.5mm'
 
 synthseg_labels:
   striatum:
@@ -412,6 +404,10 @@ hemi_to_structure:
   R: CORTEX_RIGHT
   LR: CORTEX
 
+volume_metrics:
+  - vol
+  - volmni
+  
 surface_metrics:
   #  - inout
   - surfarea
@@ -420,8 +416,8 @@ surface_metrics:
     #  - MD
 
 methods:
-  #  - mrtrix
-  - fslprobtrack
+  - mrtrix
+  - fsl
 
 
 #tractography parameters
@@ -431,9 +427,6 @@ fod_algorithm: csd #msmt_csd
 resample_seed_res: '1x1x1mm' #for resampling seeds/targets
 
 #voxel-based-seeding tractography (can move these to structure-specific config later..)
-
-seeds_per_voxel: 
- - 500
 
 surfdisp_normalization_fwhm_mm: 8
 

@@ -124,34 +124,6 @@ def get_bedpost_all():
         }
 
 
-rule all_diffparc:
-    input:
-        conn_nii=expand(
-            expand(
-                bids(
-                    root=root,
-                    datatype="dwi",
-                    hemi="{hemi}",
-                    space="{template}",
-                    desc="{targets}",
-                    label="{seed}",
-                    seedpervox="{seedpervox}",
-                    segtype="maxprob",
-                    suffix="dseg.nii.gz",
-                    **subj_wildcards,
-                ),
-                template=config["template"],
-                targets=config["targets"].keys(),
-                seed=config["seeds"].keys(),
-                seedpervox=config["seeds_per_voxel"],
-                hemi=config["hemispheres"],
-                allow_missing=True,
-            ),
-            zip,
-            **subj_zip_list,
-        ),
-
-
 rule all_group_dscalar:
     input:
         cifti_dscalar_group=expand(
@@ -213,7 +185,40 @@ rule all_preprocdwi:
         ),
 
 
-def get_subj_tables_legacy():
+def get_vol_subj_tables_legacy():
+    csvs = []
+    for seed in config["select_seeds"]:
+        csvs.extend(
+            expand(
+                expand(
+                    bids(
+                        root=root,
+                        datatype="tabular",
+                        desc="{targets}",
+                        label="{seed}",
+                        seedspervoxel="{seedspervoxel}",
+                        method="{method}",
+                        form="{form}",
+                        suffix="{suffix}.csv",
+                        **subj_wildcards,
+                    ),
+                    hemi=config["hemispheres"],
+                    seed=seed,
+                    targets=config["seeds"][seed]["targets"],
+                    seedspervoxel=config["seeds"][seed]["seeds_per_voxel"],
+                    method=config["methods"],
+                    form=["legacy"],
+                    suffix=config["volume_metrics"],
+                    allow_missing=True,
+                ),
+                zip,
+                **subj_zip_list,
+            )
+        )
+    return csvs
+
+
+def get_surf_subj_tables_legacy():
     csvs = []
     for seed in config["select_seeds"]:
         csvs.extend(
@@ -270,8 +275,9 @@ def get_subj_spec():
 
 rule all:
     input:
-        get_subj_tables_legacy(),
+        get_surf_subj_tables_legacy(),
         get_subj_spec(),
+        get_vol_subj_tables_legacy(),
     default_target: True
 
 
@@ -292,6 +298,7 @@ include: "rules/surfmorph.smk"
 include: "rules/surftrack.smk"
 include: "rules/probtrack_surf.smk"
 include: "rules/probtrack_vol.smk"
+include: "rules/volparc_postproc.smk"
 include: "rules/parcbundles.smk"
 include: "rules/cifti.smk"
 include: "rules/tables.smk"

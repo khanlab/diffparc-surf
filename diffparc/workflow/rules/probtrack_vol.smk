@@ -151,7 +151,7 @@ rule run_probtrack_volume:
             allow_missing=True,
         ),
     params:
-        seeds_per_vox="{seedspervox}",
+        seedspervoxel="{seedspervoxel}",
     output:
         out_tract_dir=directory(
             bids(
@@ -160,7 +160,7 @@ rule run_probtrack_volume:
                 hemi="{hemi}",
                 label="{seed}",
                 desc="{targets}",
-                seedspervox="{seedspervox}",
+                seedspervoxel="{seedspervoxel}",
                 datatype="tracts",
                 suffix="probtrack"
             )
@@ -171,7 +171,7 @@ rule run_probtrack_volume:
             hemi="{hemi}",
             label="{seed}",
             desc="{targets}",
-            seedspervox="{seedspervox}",
+            seedspervoxel="{seedspervoxel}",
             datatype="tracts",
             suffix="probtrack/matrix_seeds_to_all_targets"
         ),
@@ -194,7 +194,7 @@ rule run_probtrack_volume:
         " --randfib=2 "
         " -V 0 "
         " -l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 "
-        " -P {params.seeds_per_vox} --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 "
+        " -P {params.seedspervoxel} --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 "
 
 
 rule merge_seed_conn_files:
@@ -205,7 +205,7 @@ rule merge_seed_conn_files:
             hemi="{hemi}",
             label="{seed}",
             desc="{targets}",
-            seedspervox="{seedspervox}",
+            seedspervoxel="{seedspervoxel}",
             datatype="tracts",
             suffix="probtrack"
         ),
@@ -243,7 +243,7 @@ rule merge_seed_conn_files:
             hemi="{hemi}",
             desc="{targets}",
             label="{seed}",
-            seedspervox="{seedspervox}",
+            seedspervoxel="{seedspervoxel}",
             method="fsl",
             suffix="conn.nii.gz",
             **subj_wildcards,
@@ -254,37 +254,3 @@ rule merge_seed_conn_files:
         config["singularity"]["fsl"]
     shell:
         "fslmerge -t {output} {input.seed_bg} {params.seed_conn_files}"
-
-
-rule maxprob_conn_probtrack_native:
-    input:
-        conn_nii=bids(
-            root=root,
-            datatype="tracts",
-            hemi="{hemi}",
-            desc="{targets}",
-            label="{seed}",
-            seedspervox="{seedspervox}",
-            method="fsl",
-            suffix="conn.nii.gz",
-            **subj_wildcards,
-        ),
-    output:
-        conn_nii=bids(
-            root=root,
-            datatype="tracts",
-            hemi="{hemi}",
-            desc="{targets}",
-            label="{seed}",
-            seedspervox="{seedspervox}",
-            method="fsl",
-            segtype="maxprob",
-            suffix="dseg.nii.gz",
-            **subj_wildcards,
-        ),
-    container:
-        config["singularity"]["itksnap"]
-    group:
-        "subj"
-    shell:
-        "c4d {input} -slice w 0:-1 -vote -o {output} "

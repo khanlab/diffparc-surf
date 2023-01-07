@@ -63,6 +63,73 @@ rule write_surf_metrics_legacy_csv:
         "../scripts/write_surf_metrics_legacy.py"
 
 
+def get_maxprob_dsegs(wildcards):
+    out_dict = {}
+    if wildcards.metric == "vol":
+        for hemi in config["hemispheres"]:
+            out_dict[f"maxprob_{hemi}"] = bids(
+                root=root,
+                datatype="tracts",
+                hemi=hemi,
+                desc="{targets}",
+                label="{seed}",
+                seedspervoxel="{seedspervoxel}",
+                method="{method}",
+                segtype="maxprob",
+                suffix="dseg.nii.gz",
+                **subj_wildcards,
+            ).format(**wildcards)
+    elif wildcards.metric == "volmni":
+        for hemi in config["hemispheres"]:
+            out_dict[f"maxprob_{hemi}"] = bids(
+                root=root,
+                datatype="tracts",
+                hemi=hemi,
+                space=config["template"],
+                warp="linear",
+                desc="{targets}",
+                label="{seed}",
+                seedspervoxel="{seedspervoxel}",
+                method="{method}",
+                segtype="maxprob",
+                suffix="dseg.nii.gz",
+                **subj_wildcards,
+            ).format(**wildcards)
+    return out_dict
+
+
+rule write_vol_metrics_legacy_csv:
+    """ for backwards compatiblity with old diffparc - 
+    separate file for each metric, using identical column names (parcels), 
+    and index column as "subj", formatted as sub-{subject}_ses-{session} """
+    input:
+        unpack(get_maxprob_dsegs),
+    params:
+        index_col_value=bids(
+            **subj_wildcards, include_subject_dir=False, include_session_dir=False
+        ),
+        index_col_name="subj",
+        parc_list=lambda wildcards: config["targets"][wildcards.targets]["labels"],
+    output:
+        csv=bids(
+            root=root,
+            datatype="tabular",
+            desc="{targets}",
+            label="{seed}",
+            seedspervoxel="{seedspervoxel}",
+            method="{method}",
+            form="legacy",
+            suffix="{metric,vol|volmni}.csv",
+            **subj_wildcards,
+        ),
+    container:
+        config["singularity"]["pythondeps"]
+    group:
+        "subj"
+    script:
+        "../scripts/write_vol_metrics_legacy.py"
+
+
 rule write_indepconn_metric_csv:
     """ this reads in the raw connectivity
     before normalization, and calculates the

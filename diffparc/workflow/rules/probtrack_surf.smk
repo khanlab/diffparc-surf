@@ -257,7 +257,7 @@ rule create_conn_csv_probtrack:
             desc="{targets}",
             label="{seed}",
             seedspervertex="{seedspervertex}",
-            method="fslprobtrack",
+            method="fsl",
             datatype="tracts",
             suffix="conn.csv"
         ),
