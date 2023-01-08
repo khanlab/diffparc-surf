@@ -222,19 +222,19 @@ rule run_probtrack_surface:
     container:
         config["singularity"]["fsl"]
     threads: 1
-    resources: 
+    resources:
         mem_mb=4000,
-        time=lambda wildcards: int(0.2*float(wildcards.seedspervertex)), # 15 minutes for 100 seedspervertex for undecimated striatum, so set at 0.20 minutes per seed (this will need to go up if a larger seed region is used)
+        time=lambda wildcards: int(0.2 * float(wildcards.seedspervertex)),  # 15 minutes for 100 seedspervertex for undecimated striatum, so set at 0.20 minutes per seed (this will need to go up if a larger seed region is used)
     benchmark:
         bids(
-                    root='run_probtrack_surface',
-                    hemi="{hemi}",
-                    label="{seed}",
-                    desc="{targets}",
-                    seedspervertex="{seedspervertex}",
-                    suffix="benchmark.tsv",
-                    **subj_wildcards,
-            )
+            root="run_probtrack_surface",
+            hemi="{hemi}",
+            label="{seed}",
+            desc="{targets}",
+            seedspervertex="{seedspervertex}",
+            suffix="benchmark.tsv",
+            **subj_wildcards,
+        )
     shell:
         "probtrackx2 "
         " -x {input.surf_gii} "

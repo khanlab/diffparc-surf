@@ -152,13 +152,13 @@ rule track_from_vertices:
         config["singularity"]["diffparc_deps"]
     benchmark:
         bids(
-                    root='track_from_vertices',
-                    hemi="{hemi}",
-                    label="{seed}",
-                    seedspervertex="{seedspervertex}",
-                    suffix="benchmark.tsv",
-                    **subj_wildcards,
-            )
+            root="track_from_vertices",
+            hemi="{hemi}",
+            label="{seed}",
+            seedspervertex="{seedspervertex}",
+            suffix="benchmark.tsv",
+            **subj_wildcards,
+        )
     shell:
         "mkdir -p {output.tck_dir} && "
         "parallel --bar --link --jobs {threads} "

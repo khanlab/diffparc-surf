@@ -111,15 +111,14 @@ rule track_from_voxels:
         "subj"
     benchmark:
         bids(
-                    root='track_from_voxels',
-                    hemi="{hemi}",
-                    label="{seed}",
-                    seedspervoxel="{seedspervoxel}",
-                    method="mrtrix",
-                    suffix="benchmark.tsv",
-                    **subj_wildcards,
-            )
-
+            root="track_from_voxels",
+            hemi="{hemi}",
+            label="{seed}",
+            seedspervoxel="{seedspervoxel}",
+            method="mrtrix",
+            suffix="benchmark.tsv",
+            **subj_wildcards,
+        )
     container:
         config["singularity"]["diffparc_deps"]
     shell:
