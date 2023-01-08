@@ -365,9 +365,9 @@ seeds:
       - harvardoxford6
     streamline_threshold_percent: 10
     seeds_per_vertex:
-      - 5000
+      - 1000
     seeds_per_voxel:
-      - 5000
+      - 1000
     normalize_percentile: False
   vtasnc:
     template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/vtasnc_hemi-{hemi}_probseg.nii.gz
@@ -378,9 +378,9 @@ seeds:
       - harvardoxford4
     streamline_threshold_percent: 4
     seeds_per_vertex:
-      - 5000
+      - 1000
     seeds_per_voxel:
-      - 5000
+      - 1000
     normalize_percentile: 95 #normalize connectivity to each target before maxprob
 
 synthseg_labels:

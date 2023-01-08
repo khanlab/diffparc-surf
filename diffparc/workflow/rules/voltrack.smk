@@ -109,6 +109,17 @@ rule track_from_voxels:
         time=1440,
     group:
         "subj"
+    benchmark:
+        bids(
+                    root='track_from_voxels',
+                    hemi="{hemi}",
+                    label="{seed}",
+                    seedspervoxel="{seedspervoxel}",
+                    method="mrtrix",
+                    suffix="benchmark.tsv",
+                    **subj_wildcards,
+            )
+
     container:
         config["singularity"]["diffparc_deps"]
     shell:
@@ -166,7 +177,7 @@ rule connectivity_from_voxels:
         config["singularity"]["diffparc_deps"]
     shell:
         "mkdir -p {output.conn_dir} && "
-        "parallel --eta --jobs {threads} "
+        "parallel --bar --jobs {threads} "
         "tck2connectome -nthreads 0 -quiet {input.tck_dir}/vox_{{1}}.tck {input.targets} {output.conn_dir}/conn_{{1}}.csv -vector"
         " ::: `ls {input.tck_dir} | grep -Po '(?<=vox_)[0-9]+'`"
 

@@ -150,6 +150,15 @@ rule track_from_vertices:
         "subj"
     container:
         config["singularity"]["diffparc_deps"]
+    benchmark:
+        bids(
+                    root='track_from_vertices',
+                    hemi="{hemi}",
+                    label="{seed}",
+                    seedspervertex="{seedspervertex}",
+                    suffix="benchmark.tsv",
+                    **subj_wildcards,
+            )
     shell:
         "mkdir -p {output.tck_dir} && "
         "parallel --bar --link --jobs {threads} "
@@ -203,7 +212,7 @@ rule connectivity_from_vertices:
         config["singularity"]["diffparc_deps"]
     shell:
         "mkdir -p {output.conn_dir} && "
-        "parallel --eta --jobs {threads} "
+        "parallel --bar --jobs {threads} "
         "tck2connectome -nthreads 0 -quiet {input.tck_dir}/vertex_{{1}}.tck {input.targets} {output.conn_dir}/conn_{{1}}.csv -vector"
         " ::: `ls {input.tck_dir} | grep -Po '(?<=vertex_)[0-9]+'`"
 
