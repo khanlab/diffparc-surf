@@ -145,7 +145,7 @@ rule maxprob_conn_native:
     output:
         maxprob_nii=bids(
             root=root,
-            datatype="tracts",
+            datatype="anat",
             hemi="{hemi}",
             desc="{targets}",
             label="{seed}",
@@ -182,7 +182,7 @@ rule maxprob_conn_linMNI:
     output:
         conn_nii=bids(
             root=root,
-            datatype="tracts",
+            datatype="anat",
             hemi="{hemi}",
             space=config["template"],
             warp="linear",

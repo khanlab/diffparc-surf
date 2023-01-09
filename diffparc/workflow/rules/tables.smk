@@ -69,13 +69,14 @@ def get_maxprob_dsegs(wildcards):
         for hemi in config["hemispheres"]:
             out_dict[f"maxprob_{hemi}"] = bids(
                 root=root,
-                datatype="tracts",
+                datatype="anat",
                 hemi=hemi,
                 desc="{targets}",
                 label="{seed}",
                 seedspervoxel="{seedspervoxel}",
                 method="{method}",
                 segtype="maxprob",
+
                 suffix="dseg.nii.gz",
                 **subj_wildcards,
             ).format(**wildcards)
@@ -83,7 +84,7 @@ def get_maxprob_dsegs(wildcards):
         for hemi in config["hemispheres"]:
             out_dict[f"maxprob_{hemi}"] = bids(
                 root=root,
-                datatype="tracts",
+                datatype="anat",
                 hemi=hemi,
                 space=config["template"],
                 warp="linear",
