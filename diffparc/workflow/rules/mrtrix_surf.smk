@@ -152,11 +152,11 @@ rule track_from_vertices:
         config["singularity"]["diffparc_deps"]
     benchmark:
         bids(
-            root="track_from_vertices",
+            root="benchmarks",
             hemi="{hemi}",
             label="{seed}",
             seedspervertex="{seedspervertex}",
-            suffix="benchmark.tsv",
+            suffix="mrtrixsurftrack.tsv",
             **subj_wildcards,
         )
     shell:

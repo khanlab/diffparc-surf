@@ -183,12 +183,12 @@ rule run_probtrack_volume:
         time=lambda wildcards: int(0.2 * float(wildcards.seedspervoxel)),  # 15 minutes for 100 seedspervertex for undecimated striatum, so set at 0.20 minutes per seed (this will need to go up if a larger seed region is used)
     benchmark:
         bids(
-            root="run_probtrack_volume",
+            root="benchmarks",
             hemi="{hemi}",
             label="{seed}",
             desc="{targets}",
             seedspervoxel="{seedspervoxel}",
-            suffix="benchmark.tsv",
+            suffix="probtrackvol.tsv",
             **subj_wildcards,
         )
     container:

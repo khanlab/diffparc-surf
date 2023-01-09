@@ -227,12 +227,12 @@ rule run_probtrack_surface:
         time=lambda wildcards: int(0.2 * float(wildcards.seedspervertex)),  # 15 minutes for 100 seedspervertex for undecimated striatum, so set at 0.20 minutes per seed (this will need to go up if a larger seed region is used)
     benchmark:
         bids(
-            root="run_probtrack_surface",
+            root="benchmarks",
             hemi="{hemi}",
             label="{seed}",
             desc="{targets}",
             seedspervertex="{seedspervertex}",
-            suffix="benchmark.tsv",
+            suffix="probtracksurf.tsv",
             **subj_wildcards,
         )
     shell:

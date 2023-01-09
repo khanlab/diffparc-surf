@@ -111,12 +111,12 @@ rule track_from_voxels:
         "subj"
     benchmark:
         bids(
-            root="track_from_voxels",
+            root="benchmarks",
             hemi="{hemi}",
             label="{seed}",
             seedspervoxel="{seedspervoxel}",
             method="mrtrix",
-            suffix="benchmark.tsv",
+            suffix="voltrack.tsv",
             **subj_wildcards,
         )
     container:
