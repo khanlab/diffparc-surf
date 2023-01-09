@@ -76,7 +76,6 @@ def get_maxprob_dsegs(wildcards):
                 seedspervoxel="{seedspervoxel}",
                 method="{method}",
                 segtype="maxprob",
-
                 suffix="dseg.nii.gz",
                 **subj_wildcards,
             ).format(**wildcards)
