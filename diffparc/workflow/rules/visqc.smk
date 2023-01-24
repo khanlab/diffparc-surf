@@ -118,7 +118,7 @@ rule qc_structure:
             ),
             hemi=["L", "R"],
             allow_missing=True,
-        )
+        ),
         surf_roi=expand(
             bids(
                 root=root,
@@ -153,6 +153,7 @@ rule qc_structure:
             bids(
                 root="qc",
                 subject="{subject}",
+                session="{session}",
                 desc="{targets}",
                 method="{method}",
                 seedspervertex="{seedspervertex}",
@@ -162,7 +163,6 @@ rule qc_structure:
             category="Segmentation QC",
             subcategory="{seed} to {targets}",
         )
-        html=
     group:
         "subj"
     container:
