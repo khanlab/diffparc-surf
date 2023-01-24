@@ -105,3 +105,67 @@ rule qc_dseg:
         config["singularity"]["pythondeps"]
     script:
         "../scripts/vis_qc_dseg.py"
+
+rule qc_structure:
+    input:
+        surf_mesh=expand(
+            bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                suffix="{seed}.surf.gii",
+                **subj_wildcards,
+            ),
+            hemi=["L", "R"],
+            allow_missing=True,
+        )
+        surf_roi=expand(
+            bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                method="{method}",
+                suffix="maxprob.label.gii",
+                **subj_wildcards,
+            ),
+            hemi=["L", "R"],
+            allow_missing=True,
+        ),
+        vol_nii=bids(
+            root=root,
+            datatype="anat",
+            desc="preproc",
+            suffix="T1w.nii.gz",
+            **subj_wildcards,
+        ),
+        vol_roi=bids(
+            root=root,
+            datatype="anat",
+            desc="{targets}",
+            suffix="dseg.nii.gz",
+            **subj_wildcards,
+        ),
+    output:
+        png=report(
+            bids(
+                root="qc",
+                subject="{subject}",
+                desc="{targets}",
+                method="{method}",
+                seedspervertex="{seedspervertex}",
+                suffix="{seed}QC.png",
+            ),
+            caption="../report/seg_qc.rst",
+            category="Segmentation QC",
+            subcategory="{seed} to {targets}",
+        )
+        html=
+    group:
+        "subj"
+    container:
+        config["singularity"]["pythondeps"]
+    script:
+        "../scripts/vis_qc_seg.py"
