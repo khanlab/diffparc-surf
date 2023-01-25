@@ -19,20 +19,20 @@ def plot_surface(fig, fig_gs, surf_mesh, surf_roi):
     """Plot surfaces - lateral + medial (striatum) OR dorsal + ventral (vtasnc)
     """
     # Get bounds 
-    mins, maxs = get_surf_bounds(surf_mesh[0])
+    mins, maxs = get_surf_bounds(surf_mesh)
 
     # Lateral / Dorsal
     ax_surf_left = fig.add_subplot(fig_gs[2], projection='3d')
 
     # Set up views
-    if surf_mesh.contains("hemi-L"):
+    if "hemi-L" in surf_mesh:
         hemi = "left"
-        view = "lateral" if surf_mesh.contains("striatum") else "dorsal"
-        title = "Lateral" if surf_mesh.contains("striatum") else "Dorsal"
-    elif surf_mesh.contains("hemi-R"):
+        view = "lateral" if "striatum" in surf_mesh else "dorsal"
+        title = "Lateral" if "striatum" in surf_mesh else "Dorsal"
+    elif "hemi-R" in surf_mesh:
         hemi = "right"
-        view = "medial" if surf_mesh.contains("striatum") else "ventral"
-        title = "medial" if surf_mesh.contains("striatum") else "ventral"
+        view = "medial" if "striatum" in surf_mesh else "ventral"
+        title = "Medial" if "striatum" in surf_mesh else "Ventral"
     else:
         raise ValueError("Unknown hemisphere.")
 
@@ -52,14 +52,14 @@ def plot_surface(fig, fig_gs, surf_mesh, surf_roi):
     ax_surf_right = fig.add_subplot(fig_gs[3], projection='3d')
 
     # Set up views
-    if surf_mesh.contains("hemi-R"):
+    if "hemi-R" in surf_mesh:
         hemi = "right"
-        view = "lateral" if surf_mesh.contains("striatum") else "dorsal"
-        title = "Lateral" if surf_mesh.contains("striatum") else "Dorsal"
-    elif surf_mesh.contains("hemi-L"):
+        view = "lateral" if "striatum" in surf_mesh else "dorsal"
+        title = "Lateral" if "striatum" in surf_mesh else "Dorsal"
+    elif "hemi-L" in surf_mesh:
         hemi = "left"
-        view = "medial" if surf_mesh.contains("striatum") else "ventral"
-        title = "medial" if surf_mesh.contains("striatum") else "ventral"
+        view = "medial" if "striatum" in surf_mesh else "ventral"
+        title = "Medial" if "striatum" in surf_mesh else "Ventral"
     else:
         raise ValueError("Unknown hemisphere.")
 
@@ -91,27 +91,36 @@ def plot_vol(fig, fig_gs, vol_roi, vol_nii, ax_title):
 
 def plot_qc(surf_mesh, surf_roi, vol_nii, vol_roi, out_png, wildcards):
     """Plot QC figure with volume and surface overlays"""
+    # Use non-gui backend
+    matplotlib.use("Agg")
+
+    # Make output directory if it doesn't exist
+    Path(out_png).parent.mkdir(parents=True, exist_ok=True)
+    
     # Setup figure and main grid
     fig = plt.figure(figsize=(18, 7))
     gs_parent = gridspec.GridSpec(1, 2, figure=fig)
 
     # Plot left hemi
     gs_lh = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs_parent[0])
-    plot_vol(fig, gs_lh, vol_roi[0], vol_nii, "Left hemi")
+    plot_vol(fig, gs_lh, vol_roi, vol_nii, "Left hemi")
     plot_surface(fig, gs_lh, surf_mesh[0], surf_roi[0])
 
     # Plot right hemi
     gs_rh = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs_parent[1])
-    plot_vol(fig, gs_rh, vol_roi[1], vol_nii, "Right hemi")
+    plot_vol(fig, gs_rh, vol_roi, vol_nii, "Right hemi")
     plot_surface(fig, gs_rh, surf_mesh[1], surf_roi[1])
 
     # Finalize and save figure
-    fig.suptitle(f"sub-{wildcards.subject}")
+    if wildcards.session:
+        fig.suptitle(f"sub-{wildcards.subject}_ses-{wildcards.session}")
+    else:
+        fig.suptitle(f"sub-{wildcards.subject}")
     fig.savefig(out_png, dpi=200)
 
 
 if __name__ == "__main__":
-    html_view = plot_qc(
+    plot_qc(
         surf_mesh=snakemake.input.surf_mesh,
         surf_roi=snakemake.input.surf_roi,
         vol_nii=snakemake.input.vol_nii,

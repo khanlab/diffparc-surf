@@ -128,7 +128,7 @@ rule qc_structure:
                 label="{seed}",
                 seedspervertex="{seedspervertex}",
                 method="{method}",
-                suffix="maxprob.label.gii",
+                suffix="maxprob.dlabel.nii",
                 **subj_wildcards,
             ),
             hemi=["L", "R"],
@@ -141,12 +141,21 @@ rule qc_structure:
             suffix="T1w.nii.gz",
             **subj_wildcards,
         ),
-        vol_roi=bids(
-            root=root,
-            datatype="anat",
-            desc="{targets}",
-            suffix="dseg.nii.gz",
-            **subj_wildcards,
+        vol_roi=expand(
+            bids(
+                root=root,
+                datatype="anat",
+                hemi="{hemi}",
+                desc="{targets}",
+                label="{seed}",
+                seedspervoxel="{seedspervertex}",
+                method="{method}",
+                segtype="maxprob",
+                suffix="dseg.nii.gz",
+                **subj_wildcards,
+            ),
+            hemi=["L", "R"],
+            allow_missing=True,
         ),
     output:
         png=report(
