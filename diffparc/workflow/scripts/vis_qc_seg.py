@@ -89,7 +89,7 @@ def plot_vol(fig, fig_gs, vol_roi, vol_nii, ax_title):
     )
 
 
-def plot_qc(surf_mesh, surf_roi, vol_nii, vol_roi, out_png, wildcards):
+def plot_qc(surf_mesh, surf_roi, vol_nii, vol_roi, out_png):
     """Plot QC figure with volume and surface overlays"""
     # Use non-gui backend
     matplotlib.use("Agg")
@@ -112,10 +112,7 @@ def plot_qc(surf_mesh, surf_roi, vol_nii, vol_roi, out_png, wildcards):
     plot_surface(fig, gs_rh, surf_mesh[1], surf_roi[1])
 
     # Finalize and save figure
-    if wildcards.session:
-        fig.suptitle(f"sub-{wildcards.subject}_ses-{wildcards.session}")
-    else:
-        fig.suptitle(f"sub-{wildcards.subject}")
+    fig.suptitle(str(Path(out_png).name.strip(".png")[:-2]))
     fig.savefig(out_png, dpi=200)
 
 
@@ -126,5 +123,4 @@ if __name__ == "__main__":
         vol_nii=snakemake.input.vol_nii,
         vol_roi=snakemake.input.vol_roi,
         out_png=snakemake.output.png,
-        wildcards=snakemake.wildcards,
     )

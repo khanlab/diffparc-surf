@@ -24,10 +24,7 @@ def plot_synthseg(vol_nii, synthseg_dseg, out_png, wildcards):
     )
 
     # Finalize and save fig
-    if wildcards.session:
-        fig.suptitle(f"{wildcards.subject}_{wildcards.session}_desc-synthseg_dseg")
-    else:
-        fig.suptitle(f"{wildcards.subject}_desc-synthseg_dseg")
+    fig.suptitle(str(Path(out_png).name.strip(".png")[:-2]))
     fig.savefig(out_png, dpi=200)
 
 
@@ -36,5 +33,4 @@ if __name__ == "__main__":
         vol_nii=snakemake.input.vol_nii,
         synthseg_dseg=snakemake.input.synthseg_dseg,
         out_png=snakemake.output.png,
-        wildcards=snakemake.wildcards,
     )
