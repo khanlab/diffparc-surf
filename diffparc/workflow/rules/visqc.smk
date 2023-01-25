@@ -178,3 +178,38 @@ rule qc_structure:
         config["singularity"]["pythondeps"]
     script:
         "../scripts/vis_qc_seg.py"
+
+rule qc_synthseg:
+    input:
+        vol_nii=bids(
+            root=root,
+            datatype="anat",
+            desc="preproc",
+            suffix="T1w.nii.gz",
+            **subj_wildcards,
+        ),
+        synthseg_dseg=bids(
+            root=root,
+            datatype="anat",
+            desc="synthseg",
+            suffix="dseg.nii.gz",
+            **subj_wildcards,
+        )
+    output:
+        png=report(
+            bids(
+                root="qc",
+                subject="{subject}",
+                session="{session}",
+                desc="synthseg",
+                suffix="dsegQC.png"
+            ),
+            caption="../report/synthseg_qc.rst",
+            category="Synthseg QC"
+        )
+    group:
+        "subj"
+    container:
+        config["singularity"]["pythondeps"]
+    script:
+        "../scripts/vis_qc_synthseg.py"
