@@ -1,6 +1,6 @@
 def get_dscalar_nii(wildcards):
     metric = wildcards.metric
-    if metric == "surfarea" or metric == "inout":
+    if metric == "surfarea" or metric == "inout" or metric == "surfarearatio":
         dscalar = bids(
             root=root,
             datatype="surf",
@@ -16,7 +16,7 @@ def get_dscalar_nii(wildcards):
             seedspervertex="{seedspervertex}",
             method="{method}",
             label="{seed}",
-            suffix="{metric}.dscalar.nii".format(metric=metric[-2:]),
+            suffix="{metric}.dscalar.nii",
             **subj_wildcards,
         )
     elif metric == "surfFA" or metric == "surfMD":
@@ -24,8 +24,7 @@ def get_dscalar_nii(wildcards):
             root=root,
             datatype="surf",
             label="{seed}",
-            metric=metric[-2:],
-            suffix="surfdti.dscalar.nii",
+            suffix="{metric}.dscalar.nii",
             **subj_wildcards,
         )
 

@@ -127,7 +127,10 @@ def get_cmd_spec_file(wildcards, input, output):
 def get_inputs_spec_file(wildcards):
     inputs_dict = {"L": [], "R": [], "LR": [], "other": []}
 
-    dti_metrics = list(set(["FA", "MD"]).intersection(set(config["surface_metrics"])))
+    bundle_dti_metrics = list(
+        set(["bundleFA", "bundleMD"]).intersection(set(config["surface_metrics"]))
+    )
+    dti_metrics = [metric[-2:] for metric in bundle_dti_metrics]
 
     for hemi in config["hemispheres"]:
         inputs_dict[hemi].extend(
@@ -146,7 +149,9 @@ def get_inputs_spec_file(wildcards):
     morph_suffixes = [
         f"{metric}.dscalar.nii"
         for metric in list(
-            set(["surfarea", "inout"]).intersection(set(config["surface_metrics"]))
+            set(["surfarea", "inout", "surfarearatio"]).intersection(
+                set(config["surface_metrics"])
+            )
         )
     ]
 
@@ -186,8 +191,10 @@ def get_inputs_spec_file(wildcards):
         )
     )
 
-    dti_suffixes = [f"{dti}.dscalar.nii" for dti in dti_metrics]
-    methods_dti = list(set(config["methods"]).intersection({"mrtrix"}))
+    bundle_dti_suffixes = [f"{dti}.dscalar.nii" for dti in bundle_dti_metrics]
+    methods_bundle_dti = list(set(config["methods"]).intersection({"mrtrix"}))
+
+    surf_dti_suffixes = [f"surf{dti}.dscalar.nii" for dti in dti_metrics]
 
     inputs_dict["LR"].extend(
         expand(
@@ -203,8 +210,23 @@ def get_inputs_spec_file(wildcards):
             ),
             targets=config["seeds"][wildcards.seed]["targets"],
             seedspervertex=config["seeds"][wildcards.seed]["seeds_per_vertex"],
-            method=methods_dti,
-            suffix=dti_suffixes,
+            method=methods_bundle_dti,
+            suffix=bundle_dti_suffixes,
+            **wildcards,
+        )
+    )
+
+    inputs_dict["LR"].extend(
+        expand(
+            bids(
+                root=root,
+                datatype="surf",
+                label="{seed}",
+                suffix="{suffix}",
+                **subj_wildcards,
+            ),
+            method=config["methods"],
+            suffix=surf_dti_suffixes,
             **wildcards,
         )
     )

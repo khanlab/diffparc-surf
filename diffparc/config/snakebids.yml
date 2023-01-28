@@ -418,6 +418,7 @@ surface_metrics:
   - bundleMD
   - surfFA
   - surfMD
+  - surfarearatio
 
 
 methods:

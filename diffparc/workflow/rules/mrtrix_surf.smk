@@ -608,26 +608,3 @@ rule parcellate_cifti_metric:
     shell:
         "wb_command -cifti-parcellate {input.cifti_dscalar} {input.cifti_dlabel} COLUMN "
         " {output}"
-
-
-rule calc_surface_area_metric:
-    input:
-        template_surf=get_template_prefix(
-            root=root, subj_wildcards=subj_wildcards, template=config["template"]
-        )
-        + "_hemi-{hemi}_{seed}.surf.gii",
-    output:
-        metric=bids(
-            root=root,
-            **subj_wildcards,
-            hemi="{hemi}",
-            datatype="surf",
-            label="{seed}",
-            suffix="surfarea.shape.gii"
-        ),
-    group:
-        "subj"
-    container:
-        config["singularity"]["autotop"]
-    shell:
-        "wb_command -surface-vertex-areas {input} {output}"
