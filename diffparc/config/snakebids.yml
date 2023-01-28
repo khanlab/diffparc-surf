@@ -359,7 +359,8 @@ seeds:
   striatum:
     template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/striatum_hemi-{hemi}_probseg.nii.gz
     probseg_threshold: 0.5
-    surface_decimate_percent: 0
+    probseg_resample: '100%'
+    surface_decimate_percent: 25
     use_synthseg: True 
     targets:
       - harvardoxford6
@@ -371,7 +372,8 @@ seeds:
     normalize_percentile: False
   vtasnc:
     template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/vtasnc_hemi-{hemi}_probseg.nii.gz
-    probseg_threshold: 0.5
+    probseg_threshold: 0.3
+    probseg_resample: '200%'
     surface_decimate_percent: 0
     use_synthseg: False
     targets: 

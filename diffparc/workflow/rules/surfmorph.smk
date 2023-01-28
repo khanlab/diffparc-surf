@@ -10,11 +10,34 @@
 # note: with synthseg -> template-shape-injection, this could potentially be optimized a bit more..
 
 
-rule gen_template_surface:
+rule upsample_template_probseg:
     input:
         nii=lambda wildcards: os.path.join(
             workflow.basedir, "..", config["seeds"][wildcards.seed]["template_probseg"]
         ),
+    params:
+        resample=lambda wildcards: config["seeds"][wildcards.seed]["probseg_resample"],
+    output:
+        nii=temp(
+            get_template_prefix(
+                root=root, subj_wildcards=subj_wildcards, template=config["template"]
+            )
+            + "_hemi-{hemi}_desc-upsampled_label-{seed}_probseg.nii.gz"
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["itksnap"]
+    shell:
+        "c3d {input}  -resample {params.resample} -o {output}"
+
+
+rule gen_template_surface:
+    input:
+        nii=get_template_prefix(
+            root=root, subj_wildcards=subj_wildcards, template=config["template"]
+        )
+        + "_hemi-{hemi}_desc-upsampled_label-{seed}_probseg.nii.gz",
     params:
         threshold=lambda wildcards: config["seeds"][wildcards.seed]["probseg_threshold"],
         decimate_percent=lambda wildcards: config["seeds"][wildcards.seed][
