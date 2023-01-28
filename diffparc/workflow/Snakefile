@@ -243,7 +243,9 @@ def get_surf_subj_tables_legacy():
                     method=list(set(config["methods"]).intersection({"mrtrix"})),
                     form=["legacy"],
                     suffix=list(
-                        set(config["surface_metrics"]).intersection({"FA", "MD"})
+                        set(config["surface_metrics"]).intersection(
+                            {"bundleFA", "bundleMD"}
+                        )
                     ),
                     allow_missing=True,
                 ),
@@ -273,7 +275,9 @@ def get_surf_subj_tables_legacy():
                     method=config["methods"],
                     form=["legacy"],
                     suffix=list(
-                        set(config["surface_metrics"]).difference({"FA", "MD"})
+                        set(config["surface_metrics"]).difference(
+                            {"bundleFA", "bundleMD"}
+                        )
                     ),
                     allow_missing=True,
                 ),

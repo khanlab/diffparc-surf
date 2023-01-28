@@ -490,3 +490,73 @@ rule concat_all_streamlines:
         config["singularity"]["diffparc_deps"]
     shell:
         "tckedit `ls {input}/*.tck` {output.bundle}"
+
+
+rule sample_dti_at_mesh:
+    input:
+        surf=bids(
+            root=root,
+            **subj_wildcards,
+            hemi="{hemi}",
+            datatype="surf",
+            suffix="{seed}.surf.gii"
+        ),
+        dti_vol=bids(
+            root=root,
+            datatype="dwi",
+            suffix="{metric}.nii.gz",
+            **subj_wildcards,
+        ),
+    output:
+        metric=bids(
+            root=root,
+            datatype="surf",
+            hemi="{hemi}",
+            label="{seed}",
+            metric="{metric}",
+            suffix="surfdti.shape.gii",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["autotop"]
+    shell:
+        "wb_command -volume-to-surface-mapping {input.dti_vol} {input.surf} {output.metric} -trilinear"
+
+
+rule create_cifti_surfdti_dscalar:
+    input:
+        left_metric=bids(
+            root=root,
+            datatype="surf",
+            hemi="L",
+            label="{seed}",
+            metric="{metric}",
+            suffix="surfdti.shape.gii",
+            **subj_wildcards,
+        ),
+        right_metric=bids(
+            root=root,
+            datatype="surf",
+            hemi="R",
+            label="{seed}",
+            metric="{metric}",
+            suffix="surfdti.shape.gii",
+            **subj_wildcards,
+        ),
+    output:
+        cifti_dscalar=bids(
+            root=root,
+            datatype="surf",
+            label="{seed}",
+            metric="{metric}",
+            suffix="surfdti.dscalar.nii",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["autotop"]
+    shell:
+        "wb_command -cifti-create-dense-scalar {output} -left-metric {input.left_metric} -right-metric {input.right_metric}"

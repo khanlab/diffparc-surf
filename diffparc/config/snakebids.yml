@@ -414,8 +414,10 @@ surface_metrics:
   - inout
   - surfarea
   - indepconn
-  - FA
-  - MD
+  - bundleFA
+  - bundleMD
+  - surfFA
+  - surfMD
 
 
 methods:

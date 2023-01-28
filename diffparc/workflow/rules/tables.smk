@@ -8,7 +8,7 @@ def get_dscalar_nii(wildcards):
             suffix="{metric}.dscalar.nii",
             **subj_wildcards,
         )
-    elif metric == "FA" or metric == "MD":
+    elif metric == "bundleFA" or metric == "bundleMD":
         dscalar = bids(
             root=root,
             datatype="surf",
@@ -16,9 +16,19 @@ def get_dscalar_nii(wildcards):
             seedspervertex="{seedspervertex}",
             method="{method}",
             label="{seed}",
-            suffix="{metric}.dscalar.nii",
+            suffix="{metric}.dscalar.nii".format(metric=metric[-2:]),
             **subj_wildcards,
         )
+    elif metric == "surfFA" or metric == "surfMD":
+        dscalar = bids(
+            root=root,
+            datatype="surf",
+            label="{seed}",
+            metric=metric[-2:],
+            suffix="surfdti.dscalar.nii",
+            **subj_wildcards,
+        )
+
     return dscalar.format(**wildcards)
 
 
