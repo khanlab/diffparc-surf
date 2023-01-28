@@ -26,7 +26,7 @@ rule binarize_trim_subject_seed:
     group:
         "subj"
     shell:
-        "c3d {input} -threshold 0.5 inf 1 0 -resample-mm {params.resample_res} -trim 0vox -type uchar -o {output} &> {log}"
+        "c3d {input} -threshold {params.threshold} inf 1 0 -resample-mm {params.resample_res} -trim 0vox -type uchar -o {output} &> {log}"
 
 
 rule create_voxel_seed_images:

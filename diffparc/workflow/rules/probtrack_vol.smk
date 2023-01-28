@@ -18,7 +18,7 @@ rule binarize_upsampled_subject_seed:
     group:
         "subj"
     shell:
-        "c3d {input} -threshold 0.5 inf 1 0  -type uchar -o {output}"
+        "c3d {input} -threshold {params.threshold} inf 1 0  -type uchar -o {output}"
 
 
 rule fix_sform_seed:
