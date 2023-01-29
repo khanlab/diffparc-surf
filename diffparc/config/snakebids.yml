@@ -361,15 +361,17 @@ seeds:
     probseg_threshold: 0.5
     probseg_resample: '100%'
     surface_decimate_percent: 25
+    fwhm_conn: 2mm
     use_synthseg: True 
     targets:
       - harvardoxford6
+      - harvardoxford7
     streamline_threshold_percent: 10
     seeds_per_vertex:
-      - 1000
+      - 250
     seeds_per_voxel:
-      - 1000
-    normalize_percentile: False
+      - 250
+    normalize_percentile: 95
   vtasnc:
     template_probseg: resources/tpl-MNI152NLin2009cAsym/CIT168_prob/vtasnc_hemi-{hemi}_probseg.nii.gz
     probseg_threshold: 0.3
@@ -377,12 +379,14 @@ seeds:
     surface_decimate_percent: 0
     use_synthseg: False
     targets: 
+      - harvardoxford3
       - harvardoxford4
+    fwhm_conn: 2mm
     streamline_threshold_percent: 4
     seeds_per_vertex:
-      - 1000
+      - 250
     seeds_per_voxel:
-      - 1000
+      - 250
     normalize_percentile: 95 #normalize connectivity to each target before maxprob
 
 synthseg_labels:

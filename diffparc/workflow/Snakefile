@@ -187,6 +187,8 @@ rule all_preprocdwi:
 
 def get_vol_subj_tables_legacy():
     csvs = []
+    if config["volume_metrics"] == None:
+        return []
     for seed in config["select_seeds"]:
         csvs.extend(
             expand(
@@ -220,6 +222,9 @@ def get_vol_subj_tables_legacy():
 
 def get_surf_subj_tables_legacy():
     csvs = []
+    if config["surface_metrics"] == None:
+        return []
+
     for seed in config["select_seeds"]:
         # dti metrics (currently only mrtrix):
         csvs.extend(
@@ -291,6 +296,8 @@ def get_surf_subj_tables_legacy():
 
 def get_subj_spec():
     specs = []
+    if config["surface_metrics"] == None:
+        return []
     for seed in config["select_seeds"]:
         specs.extend(
             expand(
@@ -337,7 +344,8 @@ include: "rules/mrtrix_vol.smk"
 include: "rules/mrtrix_surf.smk"
 include: "rules/probtrack_surf.smk"
 include: "rules/probtrack_vol.smk"
-include: "rules/volparc_postproc.smk"
+include: "rules/postproc_surf.smk"
+include: "rules/postproc_vol.smk"
 include: "rules/parcbundles.smk"
 include: "rules/cifti.smk"
 include: "rules/tables.smk"

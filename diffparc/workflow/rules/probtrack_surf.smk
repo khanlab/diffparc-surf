@@ -46,17 +46,15 @@ rule fix_sform_mask:
             **subj_wildcards
         ),
     output:
-        brain_mask=temp(
-            bids(
-                root=root,
-                suffix="mask.nii.gz",
-                desc="brain",
-                space="T1w",
-                res="{res}",
-                fix="sform",
-                datatype="dwi",
-                **subj_wildcards
-            )
+        brain_mask=bids(
+            root=root,
+            suffix="mask.nii.gz",
+            desc="brain",
+            space="T1w",
+            res="{res}",
+            fix="sform",
+            datatype="dwi",
+            **subj_wildcards
         ),
     container:
         config["singularity"]["fsl"]
@@ -79,16 +77,14 @@ rule fix_sform_target:
             suffix="mask.nii.gz"
         ),
     output:
-        temp(
-            bids(
-                root=root,
-                **subj_wildcards,
-                targets="{targets}",
-                desc="{desc}",
-                fix="sform",
-                datatype="anat",
-                suffix="mask.nii.gz"
-            )
+        bids(
+            root=root,
+            **subj_wildcards,
+            targets="{targets}",
+            desc="{desc}",
+            fix="sform",
+            datatype="anat",
+            suffix="mask.nii.gz"
         ),
     container:
         config["singularity"]["fsl"]

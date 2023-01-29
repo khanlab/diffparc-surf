@@ -123,7 +123,7 @@ rule track_from_voxels:
         config["singularity"]["diffparc_deps"]
     shell:
         "mkdir -p {output.tck_dir} && "
-        "parallel --bar --jobs {threads} "
+        "parallel --eta --jobs {threads} "
         "tckgen -quiet -nthreads 0  -algorithm iFOD2 -mask {input.mask} "
         " {input.wm_fod} {output.tck_dir}/vox_{{1}}.tck "
         " -seed_random_per_voxel {input.vox_seeds_dir}/seed_{{1}}.nii {params.seedspervoxel} "
@@ -176,7 +176,7 @@ rule connectivity_from_voxels:
         config["singularity"]["diffparc_deps"]
     shell:
         "mkdir -p {output.conn_dir} && "
-        "parallel --bar --jobs {threads} "
+        "parallel --eta --jobs {threads} "
         "tck2connectome -nthreads 0 -quiet {input.tck_dir}/vox_{{1}}.tck {input.targets} {output.conn_dir}/conn_{{1}}.csv -vector"
         " ::: `ls {input.tck_dir} | grep -Po '(?<=vox_)[0-9]+'`"
 

@@ -128,7 +128,9 @@ def get_inputs_spec_file(wildcards):
     inputs_dict = {"L": [], "R": [], "LR": [], "other": []}
 
     bundle_dti_metrics = list(
-        set(["bundleFA", "bundleMD"]).intersection(set(config["surface_metrics"]))
+        sorted(
+            set(["bundleFA", "bundleMD"]).intersection(set(config["surface_metrics"]))
+        )
     )
     dti_metrics = [metric[-2:] for metric in bundle_dti_metrics]
 
@@ -149,8 +151,10 @@ def get_inputs_spec_file(wildcards):
     morph_suffixes = [
         f"{metric}.dscalar.nii"
         for metric in list(
-            set(["surfarea", "inout", "surfarearatio"]).intersection(
-                set(config["surface_metrics"])
+            sorted(
+                set(["surfarea", "inout", "surfarearatio"]).intersection(
+                    set(config["surface_metrics"])
+                )
             )
         )
     ]
@@ -192,7 +196,7 @@ def get_inputs_spec_file(wildcards):
     )
 
     bundle_dti_suffixes = [f"{dti}.dscalar.nii" for dti in bundle_dti_metrics]
-    methods_bundle_dti = list(set(config["methods"]).intersection({"mrtrix"}))
+    methods_bundle_dti = sorted(list(set(config["methods"]).intersection({"mrtrix"})))
 
     surf_dti_suffixes = [f"surf{dti}.dscalar.nii" for dti in dti_metrics]
 
