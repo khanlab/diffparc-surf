@@ -106,6 +106,7 @@ rule qc_dseg:
     script:
         "../scripts/vis_qc_dseg.py"
 
+
 rule qc_structure:
     input:
         surf_mesh=expand(
@@ -128,7 +129,7 @@ rule qc_structure:
                 label="{seed}",
                 seedspervertex="{seedspervertex}",
                 method="{method}",
-                suffix="maxprob.dlabel.nii",
+                suffix="maxprob.label.gii",
                 **subj_wildcards,
             ),
             hemi=["L", "R"],
@@ -161,23 +162,23 @@ rule qc_structure:
         png=report(
             bids(
                 root="qc",
-                subject="{subject}",
-                session="{session}",
                 desc="{targets}",
                 method="{method}",
                 seedspervertex="{seedspervertex}",
                 suffix="{seed}QC.png",
+                **subj_wildcards
             ),
             caption="../report/seg_qc.rst",
             category="Segmentation QC",
             subcategory="{seed} to {targets}",
-        )
+        ),
     group:
         "subj"
     container:
         config["singularity"]["pythondeps"]
     script:
         "../scripts/vis_qc_seg.py"
+
 
 rule qc_synthseg:
     input:
@@ -194,7 +195,7 @@ rule qc_synthseg:
             desc="synthseg",
             suffix="dseg.nii.gz",
             **subj_wildcards,
-        )
+        ),
     output:
         png=report(
             bids(
@@ -202,11 +203,11 @@ rule qc_synthseg:
                 subject="{subject}",
                 session="{session}",
                 desc="synthseg",
-                suffix="dsegQC.png"
+                suffix="dsegQC.png",
             ),
             caption="../report/synthseg_qc.rst",
-            category="Synthseg QC"
-        )
+            category="Synthseg QC",
+        ),
     group:
         "subj"
     container:

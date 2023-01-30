@@ -307,11 +307,40 @@ def get_subj_spec():
     return specs
 
 
+def get_subj_qc():
+    qc_snaps = []
+    for seed in config["select_seeds"]:
+        qc_snaps.extend(
+            expand(
+                expand(
+                    bids(
+                        root="qc",
+                        desc="{targets}",
+                        method="{method}",
+                        seedspervertex="{seedspervertex}",
+                        suffix="{seed}QC.png",
+                        **subj_wildcards,
+                    ),
+                    seed=seed,
+                    targets=config["seeds"][seed]["targets"],
+                    seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
+                    method=config["methods"],
+                    form=["legacy"],
+                    allow_missing=True,
+                ),
+                zip,
+                **subj_zip_list,
+            )
+        )
+    return qc_snaps
+
+
 rule all:
     input:
         get_surf_subj_tables_legacy(),
         get_subj_spec(),
         get_vol_subj_tables_legacy(),
+        get_subj_qc(),
     default_target: True
 
 
@@ -336,3 +365,4 @@ include: "rules/volparc_postproc.smk"
 include: "rules/parcbundles.smk"
 include: "rules/cifti.smk"
 include: "rules/tables.smk"
+include: "rules/visqc.smk"

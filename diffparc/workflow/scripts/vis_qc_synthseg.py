@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 import matplotlib
 import matplotlib.pyplot as plt
 from nilearn import plotting
@@ -29,7 +29,7 @@ def plot_synthseg(vol_nii, synthseg_dseg, out_png, wildcards):
 
 
 if __name__ == "__main__":
-    plot_synthseg:
+    plot_synthseg(
         vol_nii=snakemake.input.vol_nii,
         synthseg_dseg=snakemake.input.synthseg_dseg,
         out_png=snakemake.output.png,
