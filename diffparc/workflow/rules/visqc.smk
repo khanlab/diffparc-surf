@@ -105,3 +105,112 @@ rule qc_dseg:
         config["singularity"]["pythondeps"]
     script:
         "../scripts/vis_qc_dseg.py"
+
+
+rule qc_structure:
+    input:
+        surf_mesh=expand(
+            bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                suffix="{seed}.surf.gii",
+                **subj_wildcards,
+            ),
+            hemi=["L", "R"],
+            allow_missing=True,
+        ),
+        surf_roi=expand(
+            bids(
+                root=root,
+                datatype="surf",
+                hemi="{hemi}",
+                desc="{targets}",
+                label="{seed}",
+                seedspervertex="{seedspervertex}",
+                method="{method}",
+                suffix="maxprob.label.gii",
+                **subj_wildcards,
+            ),
+            hemi=["L", "R"],
+            allow_missing=True,
+        ),
+        vol_nii=bids(
+            root=root,
+            datatype="anat",
+            desc="preproc",
+            suffix="T1w.nii.gz",
+            **subj_wildcards,
+        ),
+        vol_roi=expand(
+            bids(
+                root=root,
+                datatype="anat",
+                hemi="{hemi}",
+                desc="{targets}",
+                label="{seed}",
+                seedspervoxel="{seedspervertex}",
+                method="{method}",
+                segtype="maxprob",
+                suffix="dseg.nii.gz",
+                **subj_wildcards,
+            ),
+            hemi=["L", "R"],
+            allow_missing=True,
+        ),
+    output:
+        png=report(
+            bids(
+                root="qc",
+                desc="{targets}",
+                method="{method}",
+                seedspervertex="{seedspervertex}",
+                suffix="{seed}QC.png",
+                **subj_wildcards
+            ),
+            caption="../report/seg_qc.rst",
+            category="Segmentation QC",
+            subcategory="{seed} to {targets}",
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["pythondeps"]
+    script:
+        "../scripts/vis_qc_seg.py"
+
+
+rule qc_synthseg:
+    input:
+        vol_nii=bids(
+            root=root,
+            datatype="anat",
+            desc="preproc",
+            suffix="T1w.nii.gz",
+            **subj_wildcards,
+        ),
+        synthseg_dseg=bids(
+            root=root,
+            datatype="anat",
+            desc="synthseg",
+            suffix="dseg.nii.gz",
+            **subj_wildcards,
+        ),
+    output:
+        png=report(
+            bids(
+                root="qc",
+                subject="{subject}",
+                session="{session}",
+                desc="synthseg",
+                suffix="dsegQC.png",
+            ),
+            caption="../report/synthseg_qc.rst",
+            category="Synthseg QC",
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["pythondeps"]
+    script:
+        "../scripts/vis_qc_synthseg.py"
