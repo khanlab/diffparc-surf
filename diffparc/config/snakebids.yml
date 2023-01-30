@@ -381,6 +381,8 @@ seeds:
     targets: 
       - harvardoxford3
       - harvardoxford4
+      - harvardoxford6
+      - harvardoxford7
     fwhm_conn: 2mm
     streamline_threshold_percent: 4
     seeds_per_vertex:

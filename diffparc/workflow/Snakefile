@@ -339,6 +339,7 @@ def get_synthseg_subj_tables_legacy():
             **subj_zip_list,
         )
 
+
 def get_subj_qc():
     qc_snaps = []
     for seed in config["select_seeds"]:
