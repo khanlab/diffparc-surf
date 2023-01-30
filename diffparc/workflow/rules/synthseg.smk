@@ -177,3 +177,43 @@ def get_subject_seed_probseg(wildcards):
                 suffix="probseg.nii.gz"
             ),
         )
+
+
+rule linear_transform_synthseg_to_template:
+    input:
+        dseg=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            desc="synthseg",
+            suffix="dseg.nii.gz"
+        ),
+        affine_xfm_itk=bids(
+            root=root,
+            datatype="warps",
+            suffix="affine.txt",
+            from_="subject",
+            to=config["template"],
+            desc="itk",
+            **subj_wildcards
+        ),
+        ref=os.path.join(workflow.basedir, "..", config["template_t1w"]),
+    output:
+        dseg=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            desc="synthseg",
+            space=config["template"],
+            warp="linear",
+            suffix="dseg.nii.gz"
+        ),
+    container:
+        config["singularity"]["ants"]
+    threads: 8
+    resources:
+        mem_mb=8000,
+    group:
+        "subj"
+    shell:
+        "antsApplyTransforms -d 3 --interpolation NearestNeighbor -i {input.dseg}  -o {output.dseg}  -r {input.ref} -t {input.affine_xfm_itk} "

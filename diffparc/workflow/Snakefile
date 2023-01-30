@@ -318,11 +318,34 @@ def get_subj_spec():
     return specs
 
 
+def get_synthseg_subj_tables_legacy():
+    if config["volume_metrics"] == None:
+        return []
+    else:
+        return expand(
+            expand(
+                bids(
+                    root=root,
+                    datatype="tabular",
+                    method="synthseg",
+                    form="legacy",
+                    suffix="{metric}.csv",
+                    **subj_wildcards,
+                ),
+                metric=config["volume_metrics"],
+                allow_missing=True,
+            ),
+            zip,
+            **subj_zip_list,
+        )
+
+
 rule all:
     input:
-        get_surf_subj_tables_legacy(),
         get_subj_spec(),
+        get_surf_subj_tables_legacy(),
         get_vol_subj_tables_legacy(),
+        get_synthseg_subj_tables_legacy(),
     default_target: True
 
 
