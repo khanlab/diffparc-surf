@@ -161,7 +161,8 @@ rule qc_structure:
     output:
         png=report(
             bids(
-                root="qc",
+                root=root,
+                datatype="qc",
                 desc="{targets}",
                 method="{method}",
                 seedspervertex="{seedspervertex}",
@@ -199,7 +200,8 @@ rule qc_synthseg:
     output:
         png=report(
             bids(
-                root="qc",
+                root=root,
+                datatype="qc",
                 subject="{subject}",
                 session="{session}",
                 desc="synthseg",

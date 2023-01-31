@@ -342,12 +342,15 @@ def get_synthseg_subj_tables_legacy():
 
 def get_subj_qc():
     qc_snaps = []
+    if config["volume_metrics"] == None or config["surface_metrics"] == None:
+        return []
     for seed in config["select_seeds"]:
         qc_snaps.extend(
             expand(
                 expand(
                     bids(
-                        root="qc",
+                        root=root,
+                        datatype="qc",
                         desc="{targets}",
                         method="{method}",
                         seedspervertex="{seedspervertex}",
