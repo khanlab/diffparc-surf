@@ -151,6 +151,9 @@ rule sample_dti_from_parcbundle:
             suffix="{metric}.nii.gz",
             **subj_wildcards,
         ),
+        empty_sample_txt=os.path.join(
+            workflow.basedir, "..", "resources", "empty_sampledti.txt"
+        ),
     params:
         stat_tck="-stat_tck {statsalong}",  #whether to use min, max, mean, median
     output:
@@ -175,9 +178,13 @@ rule sample_dti_from_parcbundle:
     container:
         config["singularity"]["diffparc_deps"]
     shell:
-        "tcksample -nthreads 0 -quiet {input.bundle} "
-        " {input.metric} {output.sample_txt} "
-        " {params.stat_tck} "
+        "if [ -s {input.bundle} ]; then "
+        "  tcksample -nthreads 0 -quiet {input.bundle} "
+        "   {input.metric} {output.sample_txt} "
+        "   {params.stat_tck}; "
+        "else "
+        "   cp {input.empty_sample_txt} {output.sample_txt}; "
+        "fi"
 
 
 rule sampledti_to_metric:
