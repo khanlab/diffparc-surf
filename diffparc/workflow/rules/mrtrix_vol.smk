@@ -88,6 +88,7 @@ rule track_from_voxels:
         ),
     params:
         seedspervoxel="{seedspervoxel}",
+        mrtrix_rng_seed=config["mrtrix_rng_seed"],
     output:
         tck_dir=temp(
             directory(
@@ -124,7 +125,7 @@ rule track_from_voxels:
     shell:
         "mkdir -p {output.tck_dir} && "
         "parallel --eta --jobs {threads} "
-        "tckgen -quiet -nthreads 0  -algorithm iFOD2 -mask {input.mask} "
+        "MRTRIX_RNG_SEED={params.mrtrix_rng_seed} tckgen -quiet -nthreads 0  -algorithm iFOD2 -mask {input.mask} "
         " {input.wm_fod} {output.tck_dir}/vox_{{1}}.tck "
         " -seed_random_per_voxel {input.vox_seeds_dir}/seed_{{1}}.nii {params.seedspervoxel} "
         " ::: `ls {input.vox_seeds_dir} | grep -Po '(?<=seed_)[0-9]+'`"

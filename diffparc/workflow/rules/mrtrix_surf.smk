@@ -126,6 +126,7 @@ rule track_from_vertices:
     params:
         radius="0.5",
         seedspervertex="{seedspervertex}",
+        mrtrix_rng_seed=config["mrtrix_rng_seed"],
     output:
         tck_dir=temp(
             directory(
@@ -160,7 +161,7 @@ rule track_from_vertices:
     shell:
         "mkdir -p {output.tck_dir} && "
         "parallel --eta --link --jobs {threads} "
-        "tckgen -quiet -nthreads 0  -algorithm iFOD2 -mask {input.mask} "
+        "MRTRIX_RNG_SEED={params.mrtrix_rng_seed} tckgen -quiet -nthreads 0  -algorithm iFOD2 -mask {input.mask} "
         " {input.wm_fod} {output.tck_dir}/vertex_{{1}}.tck "
         " -seed_sphere {{2}},{params.radius} -seeds {params.seedspervertex} "
         " :::  `seq --format '%05g' $(cat {input.csv} | wc -l)` ::: `cat {input.csv}` "

@@ -435,6 +435,7 @@ methods:
 #tractography parameters
 fod_algorithm: csd #msmt_csd
 
+mrtrix_rng_seed: 42 #random number generator seed for reproducible results
 
 resample_seed_res: '1x1x1mm' #for resampling seeds/targets
 
