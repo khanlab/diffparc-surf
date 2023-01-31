@@ -219,7 +219,7 @@ rule run_probtrack_surface:
         config["singularity"]["fsl"]
     threads: 1
     resources:
-        mem_mb=4000,
+        mem_mb=8000,
         time=lambda wildcards: int(0.2 * float(wildcards.seedspervertex)),  # 15 minutes for 100 seedspervertex for undecimated striatum, so set at 0.20 minutes per seed (this will need to go up if a larger seed region is used)
     benchmark:
         bids(
