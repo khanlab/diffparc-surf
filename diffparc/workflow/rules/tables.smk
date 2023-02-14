@@ -245,13 +245,13 @@ rule write_surf_volumes_csv:
     """ read in the surface vtk files
     for calculating enclosed volume of surfaces, in subject space"""
     input:
-        surfs=expand(
+        vol_txts=expand(
             bids(
                 root=root,
                 **subj_wildcards,
                 hemi="{hemi}",
                 datatype="surf",
-                suffix="{seed}.surf.gii"
+                suffix="{seed}.surfvolume.txt"
             ),
             hemi=config["hemispheres"],
             seed=config["seeds"].keys(),
@@ -259,7 +259,7 @@ rule write_surf_volumes_csv:
         ),
     params:
         col_names=expand(
-            "{seed}_{hemi}_vol",
+            "{hemi}_{seed}",
             hemi=config["hemispheres"],
             seed=config["seeds"].keys(),
             allow_missing=True,

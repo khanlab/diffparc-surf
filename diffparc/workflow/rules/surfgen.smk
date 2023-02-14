@@ -73,10 +73,24 @@ rule convert_surf_gii_to_vtk_polydata:
     input:
         surf_gii="{file}.surf.gii",
     output:
-        surf_vtk="{file}.surf.vtk",
+        surf_vtk=temp("{file}.surf.vtk"),
     group:
         "subj"
     container:
         config["singularity"]["pyvista"]
     script:
         "../scripts/convert_surf_gii_to_vtk.py"
+
+
+rule calc_surf_volume:
+    """calcs enclosed volume from surface, writes single line to a text file"""
+    input:
+        surf_vtk="{file}.surf.vtk",
+    output:
+        txt=temp("{file}.surfvolume.txt"),
+    group:
+        "subj"
+    container:
+        config["singularity"]["pyvista"]
+    script:
+        "../scripts/calculate_surf_volume_vtk.py"
