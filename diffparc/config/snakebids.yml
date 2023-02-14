@@ -425,6 +425,7 @@ surface_metrics:
   - surfFA
   - surfMD
   - surfarearatio
+  - vol
 
 
 methods:

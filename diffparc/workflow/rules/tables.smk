@@ -31,7 +31,7 @@ def get_dscalar_nii(wildcards):
     return dscalar.format(**wildcards)
 
 
-rule write_surf_metrics_legacy_csv:
+rule write_surf_metrics_csv:
     """ for backwards compatiblity with old diffparc - 
     separate file for each metric, using identical column names (parcels), 
     and index column as "subj", formatted as sub-{subject}_ses-{session} """
@@ -60,7 +60,6 @@ rule write_surf_metrics_legacy_csv:
             label="{seed}",
             seedspervertex="{seedspervertex}",
             method="{method}",
-            form="legacy",
             suffix="{metric}.csv",
             **subj_wildcards,
         ),
@@ -69,7 +68,7 @@ rule write_surf_metrics_legacy_csv:
     group:
         "subj"
     script:
-        "../scripts/write_surf_metrics_legacy.py"
+        "../scripts/write_surf_metrics.py"
 
 
 def get_maxprob_dsegs(wildcards):
@@ -128,7 +127,7 @@ def get_synthseg_dseg_for_metrics(wildcards):
         ).format(**wildcards)
 
 
-rule write_synthseg_vol_metrics_legacy_csv:
+rule write_synthseg_vol_metrics_csv:
     """ for backwards compatiblity with old diffparc - 
     separate file for each metric, using identical column names (parcels), 
     and index column as "subj", formatted as sub-{subject}_ses-{session} """
@@ -147,7 +146,6 @@ rule write_synthseg_vol_metrics_legacy_csv:
             root=root,
             datatype="tabular",
             method="synthseg",
-            form="legacy",
             suffix="{metric,vol|volmni}.csv",
             **subj_wildcards,
         ),
@@ -156,10 +154,10 @@ rule write_synthseg_vol_metrics_legacy_csv:
     group:
         "subj"
     script:
-        "../scripts/write_synthseg_vol_metrics_legacy.py"
+        "../scripts/write_synthseg_vol_metrics.py"
 
 
-rule write_vol_metrics_legacy_csv:
+rule write_vol_metrics_csv:
     """ for backwards compatiblity with old diffparc - 
     separate file for each metric, using identical column names (parcels), 
     and index column as "subj", formatted as sub-{subject}_ses-{session} """
@@ -179,7 +177,6 @@ rule write_vol_metrics_legacy_csv:
             label="{seed}",
             seedspervoxel="{seedspervoxel}",
             method="{method}",
-            form="legacy",
             suffix="{metric,vol|volmni}.csv",
             **subj_wildcards,
         ),
@@ -188,7 +185,7 @@ rule write_vol_metrics_legacy_csv:
     group:
         "subj"
     script:
-        "../scripts/write_vol_metrics_legacy.py"
+        "../scripts/write_vol_metrics.py"
 
 
 rule write_indepconn_metric_csv:
@@ -233,7 +230,6 @@ rule write_indepconn_metric_csv:
             label="{seed}",
             seedspervertex="{seedspervertex}",
             method="{method}",
-            form="legacy",
             suffix="indepconn.csv",
             **subj_wildcards,
         ),
@@ -245,6 +241,49 @@ rule write_indepconn_metric_csv:
         "../scripts/write_indepconn_metric.py"
 
 
+rule write_surf_volumes_csv:
+    """ read in the surface vtk files
+    for calculating enclosed volume of surfaces, in subject space"""
+    input:
+        surfs=expand(
+            bids(
+                root=root,
+                **subj_wildcards,
+                hemi="{hemi}",
+                datatype="surf",
+                suffix="{seed}.surf.gii"
+            ),
+            hemi=config["hemispheres"],
+            seed=config["seeds"].keys(),
+            allow_missing=True,
+        ),
+    params:
+        col_names=expand(
+            "{seed}_{hemi}_vol",
+            hemi=config["hemispheres"],
+            seed=config["seeds"].keys(),
+            allow_missing=True,
+        ),
+        index_col_value=bids(
+            **subj_wildcards, include_subject_dir=False, include_session_dir=False
+        ),
+        index_col_name="subj",
+    output:
+        csv=bids(
+            root=root,
+            datatype="tabular",
+            method="{method,mrtrix|fsl}",
+            suffix="vol.csv",
+            **subj_wildcards,
+        ),
+    container:
+        config["singularity"]["pythondeps"]
+    group:
+        "subj"
+    script:
+        "../scripts/write_surface_volume_metric.py"
+
+
 rule concat_subj_csv:
     input:
         csvs=expand(
@@ -254,7 +293,6 @@ rule concat_subj_csv:
                 desc="{targets}",
                 label="{seed}",
                 seedspervertex="{seedspervertex}",
-                form="{form}",
                 suffix="{suffix}.csv",
                 **subj_wildcards
             ),
@@ -271,7 +309,6 @@ rule concat_subj_csv:
             desc="{targets}",
             label="{seed}",
             seedspervertex="{seedspervertex}",
-            form="{form}",
             suffix="{suffix}.csv",
         ),
     container:

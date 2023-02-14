@@ -185,7 +185,7 @@ rule all_preprocdwi:
         ),
 
 
-def get_vol_subj_tables_legacy():
+def get_vol_subj_tables():
     csvs = []
     if config["volume_metrics"] == None:
         return []
@@ -200,7 +200,6 @@ def get_vol_subj_tables_legacy():
                         label="{seed}",
                         seedspervoxel="{seedspervoxel}",
                         method="{method}",
-                        form="{form}",
                         suffix="{suffix}.csv",
                         **subj_wildcards,
                     ),
@@ -209,7 +208,6 @@ def get_vol_subj_tables_legacy():
                     targets=config["seeds"][seed]["targets"],
                     seedspervoxel=config["seeds"][seed]["seeds_per_voxel"],
                     method=config["methods"],
-                    form=["legacy"],
                     suffix=config["volume_metrics"],
                     allow_missing=True,
                 ),
@@ -220,7 +218,7 @@ def get_vol_subj_tables_legacy():
     return csvs
 
 
-def get_surf_subj_tables_legacy():
+def get_surf_subj_tables():
     csvs = []
     if config["surface_metrics"] == None:
         return []
@@ -237,7 +235,6 @@ def get_surf_subj_tables_legacy():
                         label="{seed}",
                         seedspervertex="{seedspervertex}",
                         method="{method}",
-                        form="{form}",
                         suffix="{suffix}.csv",
                         **subj_wildcards,
                     ),
@@ -246,11 +243,31 @@ def get_surf_subj_tables_legacy():
                     targets=config["seeds"][seed]["targets"],
                     seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
                     method=list(set(config["methods"]).intersection({"mrtrix"})),
-                    form=["legacy"],
                     suffix=list(
                         set(config["surface_metrics"]).intersection(
                             {"bundleFA", "bundleMD"}
                         )
+                    ),
+                    allow_missing=True,
+                ),
+                zip,
+                **subj_zip_list,
+            )
+        )
+        # surface-based (enclosed) volume metrics (not parcellated)
+        csvs.extend(
+            expand(
+                expand(
+                    bids(
+                        root=root,
+                        datatype="tabular",
+                        method="{method}",
+                        suffix="{suffix}.csv",
+                        **subj_wildcards,
+                    ),
+                    method=config["methods"],
+                    suffix=list(
+                        set(config["surface_metrics"]).intersection({"vol", "volmni"})
                     ),
                     allow_missing=True,
                 ),
@@ -269,7 +286,6 @@ def get_surf_subj_tables_legacy():
                         label="{seed}",
                         seedspervertex="{seedspervertex}",
                         method="{method}",
-                        form="{form}",
                         suffix="{suffix}.csv",
                         **subj_wildcards,
                     ),
@@ -278,10 +294,9 @@ def get_surf_subj_tables_legacy():
                     targets=config["seeds"][seed]["targets"],
                     seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
                     method=config["methods"],
-                    form=["legacy"],
                     suffix=list(
                         set(config["surface_metrics"]).difference(
-                            {"bundleFA", "bundleMD"}
+                            {"bundleFA", "bundleMD", "vol", "volmni"}
                         )
                     ),
                     allow_missing=True,
@@ -318,7 +333,7 @@ def get_subj_spec():
     return specs
 
 
-def get_synthseg_subj_tables_legacy():
+def get_synthseg_subj_tables():
     if config["volume_metrics"] == None:
         return []
     else:
@@ -328,7 +343,6 @@ def get_synthseg_subj_tables_legacy():
                     root=root,
                     datatype="tabular",
                     method="synthseg",
-                    form="legacy",
                     suffix="{metric}.csv",
                     **subj_wildcards,
                 ),
@@ -361,7 +375,6 @@ def get_subj_qc():
                     targets=config["seeds"][seed]["targets"],
                     seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
                     method=config["methods"],
-                    form=["legacy"],
                     allow_missing=True,
                 ),
                 zip,
@@ -374,9 +387,9 @@ def get_subj_qc():
 rule all:
     input:
         get_subj_spec(),
-        get_surf_subj_tables_legacy(),
-        get_vol_subj_tables_legacy(),
-        get_synthseg_subj_tables_legacy(),
+        get_surf_subj_tables(),
+        get_vol_subj_tables(),
+        get_synthseg_subj_tables(),
         get_subj_qc(),
     default_target: True
 
