@@ -22,11 +22,13 @@ labels_df = pd.read_table(snakemake.input.labels_tsv)
 dseg_data = dseg_nib.get_fdata()
 metric_data = metric_nib.get_fdata()
 
-print(f"metric shape: {metric_data.shape}")
-print(f"dseg shape: {dseg_data.shape}")
+# print(f"metric shape: {metric_data.shape}")
+# print(f"dseg shape: {dseg_data.shape}")
 
 # loop over parc labels
 for labelnum, labelname in zip(labels_df.label, labels_df.name):
+    if np.sum(dseg_data == labelnum) == 0:
+        print(f"{labelname} is missing")
     parc_val = np.mean(metric_data[dseg_data == labelnum])
     row[f"{labelname}"] = [parc_val]
 

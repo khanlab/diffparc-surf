@@ -24,6 +24,32 @@ rule run_synthseg:
         "python /SynthSeg/scripts/commands/SynthSeg_predict.py --i {input} --o {output} --cpu --threads {threads}"
 
 
+rule run_synthseg_withcortparc:
+    input:
+        t1=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            desc="preproc",
+            suffix="T1w.nii.gz"
+        ),
+    output:
+        dseg=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            desc="synthsegcortparc",
+            suffix="dseg.nii.gz"
+        ),
+    container:
+        config["singularity"]["synthseg"]
+    threads: 8
+    group:
+        "subj"
+    shell:
+        "python /SynthSeg/scripts/commands/SynthSeg_predict.py --i {input} --o {output} --cpu --threads {threads} --parc"
+
+
 rule run_synthseg_template:
     input:
         t1=os.path.join(workflow.basedir, "..", config["template_t1w"]),
@@ -179,13 +205,13 @@ def get_subject_seed_probseg(wildcards):
         )
 
 
-rule linear_transform_synthseg_to_template:
+rule linear_transform_aux_dseg_to_template:
     input:
         dseg=bids(
             root=root,
             datatype="anat",
             **subj_wildcards,
-            desc="synthseg",
+            desc="{dseg_method}",
             suffix="dseg.nii.gz"
         ),
         affine_xfm_itk=bids(
@@ -203,7 +229,7 @@ rule linear_transform_synthseg_to_template:
             root=root,
             datatype="anat",
             **subj_wildcards,
-            desc="synthseg",
+            desc="{dseg_method}",
             space=config["template"],
             warp="linear",
             suffix="dseg.nii.gz"

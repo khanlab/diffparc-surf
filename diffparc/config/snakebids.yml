@@ -394,8 +394,9 @@ seeds:
 aux_dseg:
   synthseg:
     label_tsv: 'resources/synthseg_simple_labels.tsv'
-    #  syngthsegcort:
-    #    label_tsv: '
+  synthsegcortparc:
+    label_tsv: 'resources/synthseg_cortparc_labels.tsv'
+
 
 aux_metrics:
   - vol
