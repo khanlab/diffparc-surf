@@ -134,7 +134,9 @@ rule write_dseg_vol_metrics_csv:
     input:
         dseg=get_aux_dseg_for_metrics,
         labels_tsv=lambda wildcards: os.path.join(
-            workflow.basedir, "..", config["aux_dseg"][wildcards.dseg_method]
+            workflow.basedir,
+            "..",
+            config["aux_dseg"][wildcards.dseg_method]["label_tsv"],
         ),
     params:
         index_col_value=bids(
