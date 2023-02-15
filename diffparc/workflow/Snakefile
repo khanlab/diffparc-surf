@@ -333,7 +333,7 @@ def get_subj_spec():
     return specs
 
 
-def get_synthseg_subj_tables():
+def get_aux_dseg_subj_tables():
     if config["volume_metrics"] == None:
         return []
     else:
@@ -342,11 +342,12 @@ def get_synthseg_subj_tables():
                 bids(
                     root=root,
                     datatype="tabular",
-                    method="synthseg",
+                    method="{dseg_method}",
                     suffix="{metric}.csv",
                     **subj_wildcards,
                 ),
                 metric=config["volume_metrics"],
+                dseg_method=config["aux_dseg"].keys(),
                 allow_missing=True,
             ),
             zip,
@@ -389,7 +390,7 @@ rule all:
         get_subj_spec(),
         get_surf_subj_tables(),
         get_vol_subj_tables(),
-        get_synthseg_subj_tables(),
+        get_aux_dseg_subj_tables(),
         get_subj_qc(),
     default_target: True
 
