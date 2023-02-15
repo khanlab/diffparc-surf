@@ -350,3 +350,34 @@ def get_fod_for_tracking(wildcards):
                 **subj_wildcards,
             ),
         )
+
+
+rule resample_metric_to_aux_dseg:
+    input:
+        dseg=bids(
+            root=root,
+            datatype="anat",
+            desc="{dseg_method}",
+            suffix="dseg.nii.gz",
+            **subj_wildcards
+        ),
+        metric=bids(
+            root=root,
+            datatype="dwi",
+            suffix="{metric}.nii.gz",
+            **subj_wildcards,
+        ),
+    output:
+        metric=bids(
+            root=root,
+            datatype="dwi",
+            resliced="{dseg_method}",
+            suffix="{metric}.nii.gz",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["itksnap"]
+    shell:
+        "c3d {input.dseg} {input.metric} -reslice-identity -o {output.metric}"

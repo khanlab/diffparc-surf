@@ -159,6 +159,49 @@ rule write_dseg_vol_metrics_csv:
         "../scripts/write_aux_dseg_vol_metrics.py"
 
 
+rule write_dseg_dti_metrics_csv:
+    """ calcs mean dti metric in each dseg label """
+    input:
+        dseg=bids(
+            root=root,
+            datatype="anat",
+            desc="{dseg_method}",
+            suffix="dseg.nii.gz",
+            **subj_wildcards
+        ),
+        metric=bids(
+            root=root,
+            datatype="dwi",
+            resliced="{dseg_method}",
+            suffix="{metric}.nii.gz",
+            **subj_wildcards,
+        ),
+        labels_tsv=lambda wildcards: os.path.join(
+            workflow.basedir,
+            "..",
+            config["aux_dseg"][wildcards.dseg_method]["label_tsv"],
+        ),
+    params:
+        index_col_value=bids(
+            **subj_wildcards, include_subject_dir=False, include_session_dir=False
+        ),
+        index_col_name="subj",
+    output:
+        csv=bids(
+            root=root,
+            datatype="tabular",
+            method="{dseg_method}",
+            suffix="{metric,FA|MD}.csv",
+            **subj_wildcards,
+        ),
+    container:
+        config["singularity"]["pythondeps"]
+    group:
+        "subj"
+    script:
+        "../scripts/write_aux_dseg_dti_metrics.py"
+
+
 rule write_vol_metrics_csv:
     """ for backwards compatiblity with old diffparc - 
     separate file for each metric, using identical column names (parcels), 

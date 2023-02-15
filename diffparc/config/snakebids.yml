@@ -397,6 +397,12 @@ aux_dseg:
     #  syngthsegcort:
     #    label_tsv: '
 
+aux_metrics:
+  - vol
+  - volmni
+  - FA
+  - MD
+
 synthseg_labels:
   striatum:
     L:
