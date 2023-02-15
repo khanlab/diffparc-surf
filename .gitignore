@@ -1,9 +1,9 @@
-!snakedwi/config
-!snakedwi/config/*
-!snakedwi/resources
-!snakedwi/resources/*
-!snakedwi/workflow
-!snakedwi/workflow/**
+!diffparc/config
+!diffparc/config/*
+!diffparc/resources
+!diffparc/resources/*
+!diffparc/workflow
+!diffparc/workflow/**
 .gitignore
 !.gitattributes
 !.editorconfig
@@ -11,3 +11,5 @@
 !.test
 !LICENSE
 !README.md
+.snakemake
+__pycache__
