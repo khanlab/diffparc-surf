@@ -94,3 +94,70 @@ rule calc_surf_volume:
         config["singularity"]["pyvista"]
     script:
         "../scripts/calculate_surf_volume_vtk.py"
+
+
+rule convert_affine_to_world:
+    input:
+        xfm_itk=bids(
+            root=root,
+            datatype="warps",
+            suffix="affine.txt",
+            from_="subject",
+            to=config["template"],
+            desc="itk",
+            **subj_wildcards
+        ),
+    output:
+        xfm_world=bids(
+            root=root,
+            datatype="warps",
+            suffix="affine.txt",
+            from_=config["template"],
+            to_="subject",
+            desc="world",
+            **subj_wildcards
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["autotop"]
+    shell:
+        "wb_command -convert-affine -from-itk {input} -to-world {output} -inverse"
+
+
+rule linear_transform_surf_to_template:
+    """this is used to obtain the volmni (ie affine-normalized) surfaces
+    that are somewhat adjusted for head size"""
+    input:
+        surf=bids(
+            root=root,
+            **subj_wildcards,
+            hemi="{hemi}",
+            datatype="surf",
+            suffix="{seed}.surf.gii"
+        ),
+        xfm_world=bids(
+            root=root,
+            datatype="warps",
+            suffix="affine.txt",
+            from_=config["template"],
+            to_="subject",
+            desc="world",
+            **subj_wildcards
+        ),
+    output:
+        surf=bids(
+            root=root,
+            **subj_wildcards,
+            hemi="{hemi}",
+            datatype="surf",
+            space=config["template"],
+            warp="linear",
+            suffix="{seed}.surf.gii"
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["autotop"]
+    shell:
+        "wb_command -surface-apply-affine {input.surf} {input.xfm_world} {output.surf}"

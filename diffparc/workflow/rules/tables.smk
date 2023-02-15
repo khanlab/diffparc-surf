@@ -242,8 +242,6 @@ rule write_indepconn_metric_csv:
 
 
 rule write_surf_volumes_csv:
-    """ read in the surface vtk files
-    for calculating enclosed volume of surfaces, in subject space"""
     input:
         vol_txts=expand(
             bids(
@@ -274,6 +272,50 @@ rule write_surf_volumes_csv:
             datatype="tabular",
             method="{method,mrtrix|fsl}",
             suffix="vol.csv",
+            **subj_wildcards,
+        ),
+    container:
+        config["singularity"]["pythondeps"]
+    group:
+        "subj"
+    script:
+        "../scripts/write_surface_volume_metric.py"
+
+
+rule write_surf_volumes_mni_csv:
+    """ surf volume but after linear xfm to mni space"""
+    input:
+        vol_txts=expand(
+            bids(
+                root=root,
+                **subj_wildcards,
+                hemi="{hemi}",
+                datatype="surf",
+                space=config["template"],
+                warp="linear",
+                suffix="{seed}.surfvolume.txt"
+            ),
+            hemi=config["hemispheres"],
+            seed=config["seeds"].keys(),
+            allow_missing=True,
+        ),
+    params:
+        col_names=expand(
+            "{hemi}_{seed}",
+            hemi=config["hemispheres"],
+            seed=config["seeds"].keys(),
+            allow_missing=True,
+        ),
+        index_col_value=bids(
+            **subj_wildcards, include_subject_dir=False, include_session_dir=False
+        ),
+        index_col_name="subj",
+    output:
+        csv=bids(
+            root=root,
+            datatype="tabular",
+            method="{method,mrtrix|fsl}",
+            suffix="volmni.csv",
             **subj_wildcards,
         ),
     container:
