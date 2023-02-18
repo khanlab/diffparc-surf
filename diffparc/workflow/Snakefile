@@ -267,7 +267,9 @@ def get_surf_subj_tables():
                     ),
                     method=config["methods"],
                     suffix=list(
-                        set(config["surface_metrics"]).intersection({"vol", "volmni"})
+                        set(config["surface_metrics"]).intersection(
+                            {"surfvol", "surfvolmni"}
+                        )
                     ),
                     allow_missing=True,
                 ),

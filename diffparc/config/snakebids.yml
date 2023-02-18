@@ -188,6 +188,10 @@ parse_args:
       - 'max'
     default: 'mean'
 
+  --show_parallel_eta:
+    help: 'Show progress and eta for rules using GNU parallel (warning: using this option in a non-interactive session will generate very large log files) (default: %(default)s)'
+    action: 'store_true'
+    default: False
 
 #---- to update below this
 
@@ -478,4 +482,4 @@ stat_across_tcks: 'mean'
 in_prepdwi_dir: False
 in_snakedwi_dir: False
 
-
+show_parallel_eta: False

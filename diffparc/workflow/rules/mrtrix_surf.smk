@@ -127,6 +127,7 @@ rule track_from_vertices:
         radius="0.5",
         seedspervertex="{seedspervertex}",
         mrtrix_rng_seed=config["mrtrix_rng_seed"],
+        show_eta="--eta" if config["show_parallel_eta"] else "",
     output:
         tck_dir=temp(
             directory(
@@ -160,7 +161,7 @@ rule track_from_vertices:
         )
     shell:
         "mkdir -p {output.tck_dir} && "
-        "parallel --eta --link --jobs {threads} "
+        "parallel {params.show_eta} --link --jobs {threads} "
         "MRTRIX_RNG_SEED={params.mrtrix_rng_seed} tckgen -quiet -nthreads 0  -algorithm iFOD2 -mask {input.mask} "
         " {input.wm_fod} {output.tck_dir}/vertex_{{1}}.tck "
         " -seed_sphere {{2}},{params.radius} -seeds {params.seedspervertex} "
@@ -186,6 +187,8 @@ rule connectivity_from_vertices:
             datatype="anat",
             suffix="dseg.mif"
         ),
+    params:
+        show_eta="--eta" if config["show_parallel_eta"] else "",
     output:
         conn_dir=temp(
             directory(
@@ -211,7 +214,7 @@ rule connectivity_from_vertices:
         config["singularity"]["diffparc_deps"]
     shell:
         "mkdir -p {output.conn_dir} && "
-        "parallel --eta --jobs {threads} "
+        "parallel {params.show_eta} --jobs {threads} "
         "tck2connectome -nthreads 0 -quiet {input.tck_dir}/vertex_{{1}}.tck {input.targets} {output.conn_dir}/conn_{{1}}.csv -vector"
         " ::: `ls {input.tck_dir} | grep -Po '(?<=vertex_)[0-9]+'`"
 

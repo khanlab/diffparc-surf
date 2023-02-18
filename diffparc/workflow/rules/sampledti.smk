@@ -26,6 +26,7 @@ rule tcksample_from_vertices:
         ),
     params:
         stat_tck="-stat_tck {statsalong}",  #whether to use min, max, mean, median
+        show_eta="--eta" if config["show_parallel_eta"] else "",
     output:
         sampledti_dir=temp(
             directory(
@@ -54,7 +55,7 @@ rule tcksample_from_vertices:
         config["singularity"]["diffparc_deps"]
     shell:
         "mkdir -p {output.sampledti_dir} && "
-        "parallel --eta --jobs {threads} "
+        "parallel {params.show_eta} --jobs {threads} "
         "tcksample -nthreads 0 -quiet {input.tck_dir}/vertex_{{1}}.tck "
         " {input.metric} {output.sampledti_dir}/sample_{{1}}.txt "
         " {params.stat_tck} "

@@ -22,6 +22,8 @@ rule moco_dwi:
             **subj_wildcards
         ),
     #        brainmask=get_dwi_mask(),
+    params:
+        show_eta="--eta" if config["show_parallel_eta"] else "",
     output:
         affine_dir=directory(
             bids(
@@ -54,7 +56,7 @@ rule moco_dwi:
         "subj"
     shell:
         "c4d {input.dwi} -slice w 0:-1 -oo dwi_%03d.nii && "
-        "parallel --eta --jobs {threads} "
+        "parallel {params.show_eta} --jobs {threads} "
         "reg_aladin -flo dwi_{{1}}.nii  -ref dwi_000.nii -res warped_{{1}}.nii -aff affine_xfm_ras_{{1}}.txt "
         " ::: `ls dwi_???.nii | tail -n +2 | grep -Po '(?<=dwi_)[0-9]+'` && "
         " mkdir -p {output.affine_dir} && cp affine_xfm_ras_*.txt {output.affine_dir} && "
