@@ -298,7 +298,7 @@ def get_surf_subj_tables():
                     method=config["methods"],
                     suffix=list(
                         set(config["surface_metrics"]).difference(
-                            {"bundleFA", "bundleMD", "vol", "volmni"}
+                            {"bundleFA", "bundleMD", "surfvol", "surfvolmni"}
                         )
                     ),
                     allow_missing=True,

@@ -442,8 +442,8 @@ surface_metrics:
   - surfFA
   - surfMD
   - surfarearatio
-  - vol
-  - volmni
+  - surfvol
+  - surfvolmni
 
 
 

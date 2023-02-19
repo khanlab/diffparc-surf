@@ -316,7 +316,7 @@ rule write_surf_volumes_csv:
             root=root,
             datatype="tabular",
             method="{method,mrtrix|fsl}",
-            suffix="vol.csv",
+            suffix="surfvol.csv",
             **subj_wildcards,
         ),
     container:
@@ -360,7 +360,7 @@ rule write_surf_volumes_mni_csv:
             root=root,
             datatype="tabular",
             method="{method,mrtrix|fsl}",
-            suffix="volmni.csv",
+            suffix="surfvolmni.csv",
             **subj_wildcards,
         ),
     container:
