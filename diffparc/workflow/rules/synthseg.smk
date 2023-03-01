@@ -8,12 +8,14 @@ rule run_synthseg:
             suffix="T1w.nii.gz"
         ),
     output:
-        dseg=bids(
-            root=root,
-            datatype="anat",
-            **subj_wildcards,
-            desc="synthseg",
-            suffix="dseg.nii.gz"
+        dseg=temp(
+            bids(
+                root=root,
+                datatype="anat",
+                **subj_wildcards,
+                desc="synthsegnoresample",
+                suffix="dseg.nii.gz"
+            )
         ),
     container:
         config["singularity"]["synthseg"]
@@ -34,12 +36,14 @@ rule run_synthseg_withcortparc:
             suffix="T1w.nii.gz"
         ),
     output:
-        dseg=bids(
-            root=root,
-            datatype="anat",
-            **subj_wildcards,
-            desc="synthsegcortparc",
-            suffix="dseg.nii.gz"
+        dseg=temp(
+            bids(
+                root=root,
+                datatype="anat",
+                **subj_wildcards,
+                desc="synthsegcortparcnoresample",
+                suffix="dseg.nii.gz"
+            )
         ),
     container:
         config["singularity"]["synthseg"]
@@ -48,6 +52,38 @@ rule run_synthseg_withcortparc:
         "subj"
     shell:
         "python /SynthSeg/scripts/commands/SynthSeg_predict.py --i {input} --o {output} --cpu --threads {threads} --parc"
+
+
+rule reslice_synthseg_to_t1:
+    input:
+        t1=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            desc="preproc",
+            suffix="T1w.nii.gz"
+        ),
+        dseg=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            desc="{dseg}noresample",
+            suffix="dseg.nii.gz"
+        ),
+    output:
+        dseg=bids(
+            root=root,
+            datatype="anat",
+            **subj_wildcards,
+            desc="{dseg,synthseg|synthsegcortparc}",
+            suffix="dseg.nii.gz"
+        ),
+    container:
+        config["singularity"]["itksnap"]
+    group:
+        "subj"
+    shell:
+        "c3d -interpolation NearestNeighbor {input.ref} {input.dseg} -reslice-identity -o {output.dseg}"
 
 
 rule run_synthseg_template:
