@@ -83,7 +83,7 @@ rule reslice_synthseg_to_t1:
     group:
         "subj"
     shell:
-        "c3d -interpolation NearestNeighbor {input.ref} {input.dseg} -reslice-identity -o {output.dseg}"
+        "c3d -interpolation NearestNeighbor {input.t1} {input.dseg} -reslice-identity -o {output.dseg}"
 
 
 rule run_synthseg_template:
