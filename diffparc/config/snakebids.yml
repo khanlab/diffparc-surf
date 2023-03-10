@@ -449,7 +449,6 @@ surface_metrics:
 
 methods:
   - mrtrix
-  - fsl
 
 
 #tractography parameters
