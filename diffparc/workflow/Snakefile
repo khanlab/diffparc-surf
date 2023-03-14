@@ -422,6 +422,7 @@ include: "rules/postproc_vol.smk"
 include: "rules/cifti.smk"
 include: "rules/tables.smk"
 include: "rules/visqc.smk"
+include: "rules/normalize.smk"
 
 
 if not config["anat_only"]:
