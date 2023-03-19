@@ -369,6 +369,27 @@ def get_aux_dseg_subj_tables():
         )
 
 
+def get_subj_vbm():
+    return expand(
+        expand(
+            bids(
+                root=root,
+                datatype="anat",
+                space=config["template"],
+                desc="synthseg{tissue}",
+                fwhm="{fwhm}",
+                suffix="density.nii.gz",
+                **subj_wildcards,
+            ),
+            tissue=config["vbm"]["tissue_lut"].keys(),
+            fwhm=config["vbm"]["fwhm"],
+            allow_missing=True,
+        ),
+        zip,
+        **subj_zip_list,
+    )
+
+
 def get_subj_qc():
     qc_snaps = []
     if config["volume_metrics"] == None or config["surface_metrics"] == None:
@@ -406,6 +427,7 @@ rule all:
         get_vol_subj_tables(),
         get_aux_dseg_subj_tables(),
         get_subj_qc(),
+        get_subj_vbm(),
     default_target: True
 
 
@@ -424,6 +446,7 @@ include: "rules/tables.smk"
 include: "rules/visqc.smk"
 include: "rules/vbm.smk"
 
+
 if not config["anat_only"]:
 
     include: "rules/preproc_dwi.smk"
@@ -438,4 +461,3 @@ if not config["anat_only"]:
     include: "rules/probtrack_surf.smk"
     include: "rules/probtrack_vol.smk"
     include: "rules/parcbundles.smk"
-

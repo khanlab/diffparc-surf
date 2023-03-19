@@ -412,7 +412,8 @@ vbm:
     CSF: 1
     GM: 2
     WM: 3
-
+  fwhm:
+    - 2mm
   
 
 aux_metrics:
