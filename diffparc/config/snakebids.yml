@@ -214,6 +214,7 @@ singularity:
   synthstrip: 'docker://freesurfer/synthstrip:1.3'
   pythondeps: 'docker://ghcr.io/khanlab/pythondeps-diffparc-app:v0.1.1'
   pyvista: 'docker://ghcr.io/pyvista/pyvista:latest-slim'
+  synthsr: 'docker://ghcr.io/akhanf/synthsr:main'
 
 # Options for resampling dwi in T1w space
 #  1. can resample as T1w resolution
@@ -406,6 +407,13 @@ aux_dseg:
   synthsegcortparc:
     label_tsv: 'resources/synthseg_cortparc_labels.tsv'
 
+vbm:
+  tissue_lut: 
+    CSF: 1
+    GM: 2
+    WM: 3
+
+  
 
 aux_metrics:
   - vol

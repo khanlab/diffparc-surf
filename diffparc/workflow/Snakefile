@@ -422,7 +422,7 @@ include: "rules/postproc_vol.smk"
 include: "rules/cifti.smk"
 include: "rules/tables.smk"
 include: "rules/visqc.smk"
-
+include: "rules/vbm.smk"
 
 if not config["anat_only"]:
 
@@ -438,3 +438,4 @@ if not config["anat_only"]:
     include: "rules/probtrack_surf.smk"
     include: "rules/probtrack_vol.smk"
     include: "rules/parcbundles.smk"
+
