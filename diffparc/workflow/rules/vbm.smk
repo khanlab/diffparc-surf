@@ -251,3 +251,76 @@ rule smooth_density_map:
         "c3d {input.density} "
         " -smooth {params.smoothing_fwhm} "
         " -o {output.density}"
+
+
+rule transform_dti_metric_to_template:
+    input:
+        metric=bids(
+            root=root,
+            datatype="dwi",
+            suffix="{metric}.nii.gz",
+            **subj_wildcards,
+        ),
+        warp=bids(
+            root=root,
+            datatype="warps",
+            suffix="warp.nii.gz",
+            desc="composeaffine",
+            from_="subject",
+            to=config["template"],
+            **subj_wildcards
+        ),
+        ref=get_template_prefix(
+            root=root, subj_wildcards=subj_wildcards, template=config["template"]
+        )
+        + "_desc-masked_T1w.nii.gz",
+    output:
+        metric=bids(
+            root=root,
+            datatype="dwi",
+            space=config['template'],
+            desc='dti',
+            suffix="{metric}.nii.gz",
+            **subj_wildcards,
+        ),
+    threads: 8
+    container:
+        config["singularity"]["itksnap"]
+    group:
+        "subj"
+    shell:
+        "greedy -d 3 -threads {threads} -rf {input.ref} -rm {input.metric} {output.metric} -r {input.warp}"
+
+
+rule smooth_dti_metric:
+    input:
+        metric=bids(
+            root=root,
+            datatype="dwi",
+            space=config['template'],
+            desc='dti',
+            suffix="{metric}.nii.gz",
+            **subj_wildcards,
+        ),
+    params:
+        smoothing_fwhm="{fwhm}x{fwhm}x{fwhm}mm",
+    output:
+        metric=bids(
+            root=root,
+            datatype="dwi",
+            space=config['template'],
+            desc='dti',
+            fwhm="{fwhm}mm",
+            suffix="{metric}.nii.gz",
+            **subj_wildcards,
+        ),
+    group:
+        "subj"
+    container:
+        config["singularity"]["itksnap"]
+    shell:
+        "c3d {input} "
+        " -smooth {params.smoothing_fwhm} "
+        " -o {output}"
+
+

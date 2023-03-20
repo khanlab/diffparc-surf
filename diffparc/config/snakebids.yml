@@ -412,6 +412,9 @@ vbm:
     CSF: 1
     GM: 2
     WM: 3
+  dti_metrics:
+    - FA
+    - MD
   fwhm:
     - 2mm
   
@@ -421,6 +424,8 @@ aux_metrics:
   - volmni
   - FA
   - MD
+
+
 
 synthseg_labels:
   striatum:

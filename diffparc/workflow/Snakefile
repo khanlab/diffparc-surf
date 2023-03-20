@@ -16,7 +16,7 @@ if config["anat_only"]:
     config["volume_metrics"] = config["anat_only_metrics"]["volume_metrics"]
     config["surface_metrics"] = config["anat_only_metrics"]["surface_metrics"]
     config["aux_metrics"] = config["anat_only_metrics"]["aux_metrics"]
-
+    config['vbm']['dti_metrics'] = []
 
 # writes inputs_config.yml and updates config dict
 inputs = snakebids.generate_inputs(
@@ -370,6 +370,7 @@ def get_aux_dseg_subj_tables():
 
 
 def get_subj_vbm():
+    
     return expand(
         expand(
             bids(
@@ -388,6 +389,28 @@ def get_subj_vbm():
         zip,
         **subj_zip_list,
     )
+
+def get_subj_dti_vba():
+    
+    return expand(
+        expand(
+            bids(
+                root=root,
+                datatype="dwi",
+                space=config["template"],
+                desc='dti',
+                fwhm="{fwhm}",
+                suffix="{metric}.nii.gz",
+                **subj_wildcards,
+            ),
+            metric=config["vbm"]["dti_metrics"],
+            fwhm=config["vbm"]["fwhm"],
+            allow_missing=True,
+        ),
+        zip,
+        **subj_zip_list,
+    )
+
 
 
 def get_subj_qc():
@@ -428,6 +451,7 @@ rule all:
         get_aux_dseg_subj_tables(),
         get_subj_qc(),
         get_subj_vbm(),
+        get_subj_dti_vba(),
     default_target: True
 
 
