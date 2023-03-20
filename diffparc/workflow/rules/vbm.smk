@@ -278,8 +278,8 @@ rule transform_dti_metric_to_template:
         metric=bids(
             root=root,
             datatype="dwi",
-            space=config['template'],
-            desc='dti',
+            space=config["template"],
+            desc="dti",
             suffix="{metric}.nii.gz",
             **subj_wildcards,
         ),
@@ -297,8 +297,8 @@ rule smooth_dti_metric:
         metric=bids(
             root=root,
             datatype="dwi",
-            space=config['template'],
-            desc='dti',
+            space=config["template"],
+            desc="dti",
             suffix="{metric}.nii.gz",
             **subj_wildcards,
         ),
@@ -308,8 +308,8 @@ rule smooth_dti_metric:
         metric=bids(
             root=root,
             datatype="dwi",
-            space=config['template'],
-            desc='dti',
+            space=config["template"],
+            desc="dti",
             fwhm="{fwhm}mm",
             suffix="{metric}.nii.gz",
             **subj_wildcards,
@@ -322,5 +322,3 @@ rule smooth_dti_metric:
         "c3d {input} "
         " -smooth {params.smoothing_fwhm} "
         " -o {output}"
-
-
