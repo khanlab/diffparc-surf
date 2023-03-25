@@ -8,7 +8,9 @@ def get_dscalar_nii(wildcards):
             suffix="{metric}.dscalar.nii",
             **subj_wildcards,
         )
-    elif metric == "bundleFA" or metric == "bundleMD":
+    elif (
+        metric[:6] == "bundle"
+    ):  # bundleFA, bundleMD, bundle...FA (normalized versions)
         dscalar = bids(
             root=root,
             datatype="surf",
@@ -19,7 +21,9 @@ def get_dscalar_nii(wildcards):
             suffix="{metric}.dscalar.nii",
             **subj_wildcards,
         )
-    elif metric == "surfFA" or metric == "surfMD":
+    elif (
+        metric[:4] == "surf"
+    ):  # this captures surfFA, surfMD, surf...FA (normalized versions) ...
         dscalar = bids(
             root=root,
             datatype="surf",
@@ -209,7 +213,7 @@ rule write_dseg_dti_metrics_csv:
             root=root,
             datatype="tabular",
             method="{dseg_method}",
-            suffix="{metric,FA|MD}.csv",
+            suffix="{metric}.csv",
             **subj_wildcards,
         ),
     container:

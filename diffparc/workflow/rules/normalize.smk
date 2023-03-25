@@ -17,11 +17,7 @@ rule zscore_norm:
         ),
     output:
         metric=bids(
-            root=root,
-            datatype="dwi",
-            desc="zscore",
-            suffix="norm{metric}.nii.gz",
-            **subj_wildcards
+            root=root, datatype="dwi", suffix="znorm{metric}.nii.gz", **subj_wildcards
         ),
     group:
         "subj"

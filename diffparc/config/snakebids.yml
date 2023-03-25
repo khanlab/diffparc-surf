@@ -412,6 +412,8 @@ aux_metrics:
   - volmni
   - FA
   - MD
+  - znormFA
+  - znormMD
 
 synthseg_labels:
   striatum:
@@ -449,6 +451,11 @@ surface_metrics:
   - surfarearatio
   - surfvol
   - surfvolmni
+  - bundleznormFA
+  - bundleznormMD
+  - surfznormFA
+  - surfznormMD
+
 
 anat_only_metrics:
   surface_metrics:

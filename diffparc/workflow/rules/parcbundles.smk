@@ -356,7 +356,7 @@ rule create_cifti_sampledti_dscalar:
             seedspervertex="{seedspervertex}",
             method="mrtrix",
             label="{seed}",
-            suffix="bundle{metric,FA|MD}.dscalar.nii",
+            suffix="bundle{metric,[a-zA-Z0-9]*(FA|MD)}.dscalar.nii",
             **subj_wildcards,
         ),
     group:
@@ -557,7 +557,7 @@ rule create_cifti_surfdti_dscalar:
             root=root,
             datatype="surf",
             label="{seed}",
-            suffix="surf{metric,FA|MD}.dscalar.nii",
+            suffix="surf{metric,[a-zA-Z0-9]*(FA|MD)}.dscalar.nii",
             **subj_wildcards,
         ),
     group:
