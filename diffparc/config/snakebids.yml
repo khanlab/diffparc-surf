@@ -194,9 +194,17 @@ parse_args:
     default: False
 
   --anat_only:
-    help: 'Run variant of the workflow that only uses anatomical (T1w) data. Uses a pre-computed parcellation for surface-based connectivity parcellation. Does not produce volumetric parcellations, or any connectivity or DTI metric features. (default: %(default)s)'
+    help: 'Run variant of the workflow that only relies on anatomical (T1w) data. This will automatically set the --use_template_parcellation flag, and does not produce volumetric parcellations, or any connectivity or DTI metric features. Note: if you want to use DTI metrics but avoid subject-specific connectivity parcellation, use the --use_template_parcellation option instead. (default: %(default)s)'
     action: 'store_true'
     default: False
+
+
+  --use_template_parcellation: 
+    help: 'Uses a pre-computed parcellation for surface-based connectivity parcellation. Note: this will still make use of DTI metrics sampled with the parcellation, use the --anat_only` option instead to completely disable the use of dwi data. (default: %(default)s)'
+    action: 'store_true'
+    default: False
+
+
 
 #---- to update below this
 
@@ -214,6 +222,7 @@ singularity:
   synthstrip: 'docker://freesurfer/synthstrip:1.3'
   pythondeps: 'docker://ghcr.io/khanlab/pythondeps-diffparc-app:v0.1.1'
   pyvista: 'docker://ghcr.io/pyvista/pyvista:latest-slim'
+  synthsr: 'docker://ghcr.io/akhanf/synthsr:main'
 
 # Options for resampling dwi in T1w space
 #  1. can resample as T1w resolution
@@ -406,14 +415,20 @@ aux_dseg:
   synthsegcortparc:
     label_tsv: 'resources/synthseg_cortparc_labels.tsv'
 
-
-aux_metrics:
-  - vol
-  - volmni
-  - FA
-  - MD
-  - znormFA
-  - znormMD
+vbm:
+  tissue_lut: 
+    CSF: 1
+    GM: 2
+    WM: 3
+  dti_metrics:
+    - FA
+    - MD
+  fwhm:
+    - 2mm
+    - 6mm
+    - 10mm
+  seg_method: 'synthseg'
+  
 
 synthseg_labels:
   striatum:
@@ -457,19 +472,13 @@ surface_metrics:
   - surfznormMD
 
 
-anat_only_metrics:
-  surface_metrics:
-    - inout
-    - surfarea
-    - surfarearatio
-    - surfvol
-    - surfvolmni
-  volume_metrics: null
-  aux_metrics:
-    - vol
-    - volmni
-
-
+aux_metrics:
+  - vol
+  - volmni
+  - FA
+  - MD
+  - znormFA
+  - znormMD
 
 
 methods:
@@ -509,4 +518,5 @@ in_snakedwi_dir: False
 show_parallel_eta: False
 
 anat_only: False
+use_template_parcellation: False
 

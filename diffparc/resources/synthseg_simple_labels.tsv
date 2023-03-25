@@ -1,33 +1,33 @@
-label	name	color
-2	"Left-Cerebral-White-Matter"	#f5f5f5
-3	"Left-Cerebral-Cortex"	#cd3e4e
-4	"Left-Lateral-Ventricle"	#781286
-5	"Left-Inf-Lat-Vent"	#c43afa
-7	"Left-Cerebellum-White-Matter"	#dcf8a4
-8	"Left-Cerebellum-Cortex"	#e69422
-10	"Left-Thalamus"	#00760e
-11	"Left-Caudate"	#7abadc
-12	"Left-Putamen"	#ec0db0
-13	"Left-Pallidum"	#0c30ff
-14	"3rd-Ventricle"	#ccb68e
-15	"4th-Ventricle"	#2acca4
-16	"Brain-Stem"	#779fb0
-17	"Left-Hippocampus"	#dcd814
-18	"Left-Amygdala"	#67ffff
-24	"CSF"	#3c3c3c
-26	"Left-Accumbens-area"	#ffa500
-28	"Left-VentralDC"	#a52a2a
-41	"Right-Cerebral-White-Matter"	#f5f5f5
-42	"Right-Cerebral-Cortex"	#cd3e4e
-43	"Right-Lateral-Ventricle"	#781286
-44	"Right-Inf-Lat-Vent"	#c43afa
-46	"Right-Cerebellum-White-Matter"	#dcf8a4
-47	"Right-Cerebellum-Cortex"	#e69422
-49	"Right-Thalamus"	#00760e
-50	"Right-Caudate"	#7abadc
-51	"Right-Putamen"	#ec0db0
-52	"Right-Pallidum"	#0d30ff
-53	"Right-Hippocampus"	#dcd814
-54	"Right-Amygdala"	#67ffff
-58	"Right-Accumbens-area"	#ffa500
-60	"Right-VentralDC"	#a52a2a
+label	name	color	tissue
+2	"Left-Cerebral-White-Matter"	#f5f5f5	WM
+3	"Left-Cerebral-Cortex"	#cd3e4e	GM
+4	"Left-Lateral-Ventricle"	#781286	CSF
+5	"Left-Inf-Lat-Vent"	#c43afa	CSF
+7	"Left-Cerebellum-White-Matter"	#dcf8a4	WM
+8	"Left-Cerebellum-Cortex"	#e69422	GM
+10	"Left-Thalamus"	#00760e	GM
+11	"Left-Caudate"	#7abadc	GM
+12	"Left-Putamen"	#ec0db0	GM
+13	"Left-Pallidum"	#0c30ff	GM
+14	"3rd-Ventricle"	#ccb68e	CSF
+15	"4th-Ventricle"	#2acca4	CSF
+16	"Brain-Stem"	#779fb0	GM
+17	"Left-Hippocampus"	#dcd814	GM
+18	"Left-Amygdala"	#67ffff	GM
+24	"CSF"	#3c3c3c	CSF
+26	"Left-Accumbens-area"	#ffa500	GM
+28	"Left-VentralDC"	#a52a2a	GM
+41	"Right-Cerebral-White-Matter"	#f5f5f5	WM
+42	"Right-Cerebral-Cortex"	#cd3e4e	GM
+43	"Right-Lateral-Ventricle"	#781286	CSF
+44	"Right-Inf-Lat-Vent"	#c43afa	CSF
+46	"Right-Cerebellum-White-Matter"	#dcf8a4	WM
+47	"Right-Cerebellum-Cortex"	#e69422	GM
+49	"Right-Thalamus"	#00760e	GM
+50	"Right-Caudate"	#7abadc	GM
+51	"Right-Putamen"	#ec0db0	GM
+52	"Right-Pallidum"	#0d30ff	GM
+53	"Right-Hippocampus"	#dcd814	GM
+54	"Right-Amygdala"	#67ffff	GM
+58	"Right-Accumbens-area"	#ffa500	GM
+60	"Right-VentralDC"	#a52a2a	GM

@@ -173,7 +173,7 @@ def get_inputs_spec_file(wildcards):
         )
     )
 
-    if not config["anat_only"]:
+    if not config["use_template_parcellation"]:
         conn_suffixes = ["maxprob.dlabel.nii", "conn.dscalar.nii"]
 
         inputs_dict["LR"].extend(

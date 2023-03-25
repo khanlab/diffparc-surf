@@ -36,7 +36,7 @@ def get_dscalar_nii(wildcards):
 
 
 def get_dlabel_nii(wildcards):
-    if config["anat_only"]:
+    if config["use_template_parcellation"]:
         return bids(
             root=os.path.join(workflow.basedir, "..", "resources", "tpl-ctrlavg"),
             prefix="tpl-ctrlavg",

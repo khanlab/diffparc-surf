@@ -9,13 +9,30 @@ configfile: "config/snakebids.yml"
 
 if config["anat_only"]:
 
+    # force use of template parcellation
+    config["use_template_parcellation"] = True
+
     # remove dwi from bids inputs:
     del config["pybids_inputs"]["dwi"]
 
-    # restrict to set of valid metrics
-    config["volume_metrics"] = config["anat_only_metrics"]["volume_metrics"]
-    config["surface_metrics"] = config["anat_only_metrics"]["surface_metrics"]
-    config["aux_metrics"] = config["anat_only_metrics"]["aux_metrics"]
+    # remove any metrics involving FA or MD:
+    config["surface_metrics"] = list(
+        set(config["surface_metrics"]).difference(["surfFA", "surfMD"])
+    )
+    config["aux_metrics"] = list(set(config["aux_metrics"]).difference(["FA", "MD"]))
+    config["vbm"]["dti_metrics"] = list(
+        set(config["vbm"]["dti_metrics"]).difference(["FA", "MD"])
+    )
+
+if config["use_template_parcellation"]:
+
+    # remove any metrics involving subj-specific parcellation (surface or volume):
+    config["surface_metrics"] = list(
+        set(config["surface_metrics"]).difference(["indepconn", "bundleFA", "bundleMD"])
+    )
+    config["volume_metrics"] = list(
+        set(config["volume_metrics"]).difference(["vol", "volmni"])
+    )
 
 
 # writes inputs_config.yml and updates config dict
@@ -199,7 +216,7 @@ rule all_preprocdwi:
 
 def get_vol_subj_tables():
     csvs = []
-    if config["volume_metrics"] == None:
+    if len(config["volume_metrics"]) == 0:
         return []
     for seed in config["select_seeds"]:
         csvs.extend(
@@ -369,9 +386,54 @@ def get_aux_dseg_subj_tables():
         )
 
 
+def get_subj_vbm():
+
+    return expand(
+        expand(
+            bids(
+                root=root,
+                datatype="vbm",
+                space=config["template"],
+                method=config["vbm"]["seg_method"],
+                fwhm="{fwhm}",
+                desc="{tissue}",
+                suffix="moddensity.nii.gz",
+                **subj_wildcards,
+            ),
+            tissue=config["vbm"]["tissue_lut"].keys(),
+            fwhm=config["vbm"]["fwhm"],
+            allow_missing=True,
+        ),
+        zip,
+        **subj_zip_list,
+    )
+
+
+def get_subj_dti_vbm():
+
+    return expand(
+        expand(
+            bids(
+                root=root,
+                datatype="vbm",
+                space=config["template"],
+                desc="dti",
+                fwhm="{fwhm}",
+                suffix="{metric}.nii.gz",
+                **subj_wildcards,
+            ),
+            metric=config["vbm"]["dti_metrics"],
+            fwhm=config["vbm"]["fwhm"],
+            allow_missing=True,
+        ),
+        zip,
+        **subj_zip_list,
+    )
+
+
 def get_subj_qc():
     qc_snaps = []
-    if config["volume_metrics"] == None or config["surface_metrics"] == None:
+    if len(config["volume_metrics"]) == 0 or len(config["surface_metrics"]) == 0:
         return []
     for seed in config["select_seeds"]:
         qc_snaps.extend(
@@ -406,6 +468,8 @@ rule all:
         get_vol_subj_tables(),
         get_aux_dseg_subj_tables(),
         get_subj_qc(),
+        get_subj_vbm(),
+        get_subj_dti_vbm(),
     default_target: True
 
 
@@ -423,6 +487,7 @@ include: "rules/cifti.smk"
 include: "rules/tables.smk"
 include: "rules/visqc.smk"
 include: "rules/normalize.smk"
+include: "rules/vbm.smk"
 
 
 if not config["anat_only"]:
