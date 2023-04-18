@@ -34,16 +34,31 @@ RUN git clone --depth 1 https://github.com/MRtrix3/mrtrix3.git /opt/mrtrix3 \
     && ./configure ${MRTRIX_CONFIG_FLAGS} \
     && ./build ${MRTRIX_BUILD_FLAGS} \
     && mkdir -p mrtrix3_runtime \
-    && cp -R bin core lib src mrtrix3_runtime \
-    && rm -rf tmp
+    && cp -R bin core lib src mrtrix3_runtime 
+
+# Stage: ants
+FROM requirements as ants
+ARG ANTS_VER=2.4.3
+RUN wget https://github.com/ANTsX/ANTs/releases/download/v${ANTS_VER}/ants-${ANTS_VER}-centos7-X64-gcc.zip -O ants.zip \
+    && unzip -qq ants.zip -d /opt \
+    && mv /opt/ants-${ANTS_VER} /opt/ants \
+    && rm ants.zip
 
 # Stage: runtime
 FROM requirements as runtime
+COPY --from=ants \ 
+    # Commands to copy
+    /opt/ants/bin/antsApplyTransforms \
+    /opt/ants/bin/antsRegistration \ 
+    /opt/ants/bin/Atropos \ 
+    /opt/ants/bin/N4BiasFieldCorrection \ 
+    # Target destination
+    /opt/ants/bin/
 COPY --from=mrtrix /opt/mrtrix3/mrtrix3_runtime /opt/mrtrix3/
-
 # Setup environments
 ENV OS=Linux \
-    PATH=/opt/mrtrix3/bin:$PATH
+    ANTSPATH=/opt/ants/bin \
+    PATH=/opt/mrtrix3/bin:/opt/ants:/opt/ants/bin:$PATH
 
 # FROM snakemake/snakemake:stable
 
