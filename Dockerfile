@@ -52,6 +52,14 @@ RUN wget https://humanconnectome.org/storage/app/media/workbench/workbench-linux
     && rm -r /opt/workbench/plugins_linux64 \ 
     && rm workbench.zip 
 
+# Stage: niftyreg
+FROM requirements as niftyreg
+ARG NIFTYREG_VER=1.3.9
+RUN wget https://sourceforge.net/projects/niftyreg/files/nifty_reg-${NIFTYREG_VER}/NiftyReg-${NIFTYREG_VER}-Linux-x86_64-Release.tar.gz/download -O niftyreg.tar.gz \
+    && tar -xf niftyreg.tar.gz -C /opt \
+    && mv /opt/NiftyReg-${NIFTYREG_VER}-Linux-x86_64-Release /opt/niftyreg \
+    && rm niftyreg.tar.gz
+
 # Stage: runtime
 FROM requirements as runtime
 COPY --from=ants \ 
@@ -63,12 +71,13 @@ COPY --from=ants \
     # Target destination
     /opt/ants/bin/
 COPY --from=mrtrix /opt/mrtrix3/mrtrix3_runtime /opt/mrtrix3/
+COPY --from=niftyreg /opt/niftyreg /opt/niftyreg
 COPY --from=workbench /opt/workbench /opt/workbench
 # Setup environments
 ENV OS=Linux \
     ANTSPATH=/opt/ants/bin \
-    LD_LIBRARY_PATH=/opt/workbench/libs_linux64:/opt/workbench/libs_linux64_software_opengl:${LD_LIBRARY_PATH} \
-    PATH=/opt/ants:/opt/ants/bin:/opt/mrtrix3/bin:/opt/workbench/bin_linux64:${PATH}
+    LD_LIBRARY_PATH=/opt/niftyreg/lib:/opt/workbench/libs_linux64:/opt/workbench/libs_linux64_software_opengl:${LD_LIBRARY_PATH} \
+    PATH=/opt/ants:/opt/ants/bin:/opt/mrtrix3/bin:/opt/niftyreg/bin/:/opt/workbench/bin_linux64:${PATH}
 
 # FROM snakemake/snakemake:stable
 
