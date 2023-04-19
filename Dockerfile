@@ -44,6 +44,14 @@ RUN wget https://github.com/ANTsX/ANTs/releases/download/v${ANTS_VER}/ants-${ANT
     && mv /opt/ants-${ANTS_VER} /opt/ants \
     && rm ants.zip
 
+# Stage: workbench
+FROM requirements as workbench
+ARG WB_VER=1.5.0
+RUN wget https://humanconnectome.org/storage/app/media/workbench/workbench-linux64-v${WB_VER}.zip -O workbench.zip \
+    && unzip -qq workbench.zip -d /opt \
+    && rm -r /opt/workbench/plugins_linux64 \ 
+    && rm workbench.zip 
+
 # Stage: runtime
 FROM requirements as runtime
 COPY --from=ants \ 
@@ -55,10 +63,12 @@ COPY --from=ants \
     # Target destination
     /opt/ants/bin/
 COPY --from=mrtrix /opt/mrtrix3/mrtrix3_runtime /opt/mrtrix3/
+COPY --from=workbench /opt/workbench /opt/workbench
 # Setup environments
 ENV OS=Linux \
     ANTSPATH=/opt/ants/bin \
-    PATH=/opt/mrtrix3/bin:/opt/ants:/opt/ants/bin:$PATH
+    LD_LIBRARY_PATH=/opt/workbench/libs_linux64:/opt/workbench/libs_linux64_software_opengl:${LD_LIBRARY_PATH} \
+    PATH=/opt/ants:/opt/ants/bin:/opt/mrtrix3/bin:/opt/workbench/bin_linux64:${PATH}
 
 # FROM snakemake/snakemake:stable
 
