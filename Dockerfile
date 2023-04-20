@@ -22,6 +22,15 @@ RUN mkdir -p /opt \
     wget \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Stage: build
+# Python dependencies
+FROM requirements as build 
+COPY . /opt/diffparc-surf
+RUN cd /opt/diffparc-surf \
+    && pip install --prefer-binary --no-cache-dir \
+    poetry==1.4.0 \
+    && poetry build -f wheel
+
 # Stage: ants
 FROM requirements as ants
 ARG ANTS_VER=2.4.3
@@ -74,6 +83,9 @@ RUN wget https://sourceforge.net/projects/niftyreg/files/nifty_reg-${NIFTYREG_VE
     && cd / \
     && rm niftyreg.tar.gz
 
+# # Stage: synthstrip
+# FROM freesurfer/synthstrip:1.3 as synthstrip
+
 # Stage: workbench
 FROM requirements as workbench
 ARG WB_VER=1.5.0
@@ -84,6 +96,7 @@ RUN wget https://humanconnectome.org/storage/app/media/workbench/workbench-linux
 
 # Stage: runtime
 FROM requirements as runtime
+COPY --from=build /opt/diffparc-surf/dist/*.whl /opt/diffparc-surf/
 COPY --from=ants \ 
     # Commands to copy
     /opt/ants/bin/antsApplyTransforms \
@@ -96,7 +109,13 @@ COPY --from=c3d /opt/c3d /opt/c3d/
 COPY --from=greedy /opt/greedy/bin/greedy /opt/greedy/bin/
 COPY --from=mrtrix /opt/mrtrix3/mrtrix3_runtime /opt/mrtrix3/
 COPY --from=niftyreg /opt/niftyreg /opt/niftyreg/
+# COPY --from=synthstrip /freesurfer /opt/synthstrip/
 COPY --from=workbench /opt/workbench /opt/workbench/
+RUN WHEEL=`ls /opt/diffparc-surf | grep whl` \
+    && pip install /opt/diffparc-surf/${WHEEL} \
+    && rm -r /opt/diffparc-surf \
+    && apt-get purge -y -q curl g++ unzip wget \
+    && apt-get --purge -y -qq autoremove
 # Setup environments
 ENV OS=Linux \
     ANTSPATH=/opt/ants/bin \
