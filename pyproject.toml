@@ -6,7 +6,7 @@ authors = ["Ali Khan <alik@robarts.ca>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8,<3.10"
+python = ">=3.8,<3.9"
 snakebids = "^0.7.0"
 cache = "^1.0.3"
 scipy = "^1.10.1"

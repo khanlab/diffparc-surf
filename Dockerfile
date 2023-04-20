@@ -1,6 +1,6 @@
 # Stage: requirements
 # Notes: g++ (snakebids), tcsh (freesurfer), libtiff5 (mrtrix3)
-FROM python:3.9-slim-bullseye as requirements
+FROM python:3.8-slim-bullseye as requirements
 RUN mkdir -p /opt \
     && apt-get update -qq \ 
     && apt-get install -y -q --no-install-recommends \
@@ -84,7 +84,7 @@ RUN wget https://sourceforge.net/projects/niftyreg/files/nifty_reg-${NIFTYREG_VE
     && rm niftyreg.tar.gz
 
 # # Stage: synthstrip
-# FROM freesurfer/synthstrip:1.3 as synthstrip
+FROM freesurfer/synthstrip:1.3 as synthstrip
 
 # Stage: workbench
 FROM requirements as workbench
@@ -109,7 +109,7 @@ COPY --from=c3d /opt/c3d /opt/c3d/
 COPY --from=greedy /opt/greedy/bin/greedy /opt/greedy/bin/
 COPY --from=mrtrix /opt/mrtrix3/mrtrix3_runtime /opt/mrtrix3/
 COPY --from=niftyreg /opt/niftyreg /opt/niftyreg/
-# COPY --from=synthstrip /freesurfer /opt/synthstrip/
+COPY --from=synthstrip /freesurfer /opt/freesurfer/
 COPY --from=workbench /opt/workbench /opt/workbench/
 RUN WHEEL=`ls /opt/diffparc-surf | grep whl` \
     && pip install /opt/diffparc-surf/${WHEEL} \
@@ -119,8 +119,9 @@ RUN WHEEL=`ls /opt/diffparc-surf | grep whl` \
 # Setup environments
 ENV OS=Linux \
     ANTSPATH=/opt/ants/bin \
+    FREESURFER_HOME=/freesurfer \ 
     LD_LIBRARY_PATH=/opt/niftyreg/lib:/opt/workbench/libs_linux64:/opt/workbench/libs_linux64_software_opengl:${LD_LIBRARY_PATH} \
-    PATH=/opt/ants:/opt/ants/bin:/opt/c3d/bin:/opt/greedy/bin:/opt/mrtrix3/bin:/opt/niftyreg/bin/:/opt/workbench/bin_linux64:${PATH}
+    PATH=/opt/ants:/opt/ants/bin:/opt/c3d/bin:/opt/freesurfer:/opt/greedy/bin:/opt/mrtrix3/bin:/opt/niftyreg/bin/:/opt/workbench/bin_linux64:${PATH}
 
 # FROM snakemake/snakemake:stable
 
