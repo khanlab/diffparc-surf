@@ -5,7 +5,8 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     PYENV_VER="v2.3.17" \
     PYTHON_VER="3.8.12" \
     PYENV_ROOT="/root/.pyenv" \
-    PATH="/root/.pyenv/shims:/root/.pyenv/bin:${PATH}"
+    PATH="/root/.pyenv/shims:/root/.pyenv/bin:/usr/local/cuda/bin:${PATH}" \ 
+    LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
     build-essential \
@@ -50,6 +51,11 @@ RUN mkdir -p /opt \
     tcsh \
     g++ \
     unzip \
+    # FSL dependencies
+    libexpat1-dev \
+    liblapack-dev \ 
+    libopenblas-dev \
+    libx11-dev \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Stage: diffparc (python wheel)
@@ -67,6 +73,15 @@ RUN wget https://github.com/ANTsX/ANTs/releases/download/v${ANTS_VER}/ants-${ANT
     && unzip -qq ants.zip -d /opt \
     && mv /opt/ants-${ANTS_VER} /opt/ants \
     && rm ants.zip
+
+# Stage: fsl 
+FROM fnndsc/fsl:6.0.5.1-cuda9.1 as fsl
+RUN mv /usr/local/fsl/bin /usr/local/fsl/bin-all \
+    && mkdir -p /usr/local/fsl/bin \
+    && cd /usr/local/fsl/bin-all \
+    && cp -R bet* bedpost* topup applytopup eddy* fslorient probtrack* fslmerge /usr/local/fsl/bin \
+    && cd /usr/local/fsl/bin \
+    && rm -r eddy_cuda8.0 eddy_cuda10.2 /usr/local/fsl/bin-all 
 
 # Stage: itksnap (built with Ubuntu16.04 - glibc 2.23)
 FROM khanlab/itksnap:main as itksnap
@@ -119,6 +134,7 @@ RUN wget https://humanconnectome.org/storage/app/media/workbench/workbench-linux
 
 # Stage: runtime
 FROM builder as runtime
+WORKDIR /
 COPY --from=diffparc /opt/diffparc-surf/dist/*.whl /opt/diffparc-surf/
 COPY --from=ants \ 
     # Commands to copy
@@ -134,15 +150,25 @@ COPY --from=niftyreg /opt/niftyreg /opt/niftyreg/
 COPY --from=synthseg /opt/SynthSeg /opt/SynthSeg/
 COPY --from=synthstrip /freesurfer /opt/freesurfer/
 COPY --from=workbench /opt/workbench /opt/workbench/
+# FSL + cuda9.1 
+COPY --from=fsl /usr/local/cuda /usr/local/cuda/
+COPY --from=fsl /usr/local/cuda-9.1 /usr/local/cuda-9.1/
+COPY --from=fsl /usr/local/fsl /usr/local/fsl/
 # Setup environments
 ENV OS=Linux \
     ANTSPATH=/opt/ants/bin \
     FREESURFER_HOME=/opt/freesurfer \ 
-    LD_LIBRARY_PATH=/opt/itksnap/lib:/opt/niftyreg/lib:/opt/workbench/libs_linux64:/opt/workbench/libs_linux64_software_opengl:/usr/local/cuda/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH} \
-    PATH=/opt/ants:/opt/ants/bin:/opt/freesurfer:/opt/itksnap/bin:/opt/mrtrix3/bin:/opt/niftyreg/bin/:/opt/workbench/bin_linux64:/usr/local/cuda/bin:${PATH}
+    LD_LIBRARY_PATH=/opt/itksnap/lib:/opt/niftyreg/lib:/opt/workbench/libs_linux64:/opt/workbench/libs_linux64_software_opengl:${LD_LIBRARY_PATH}:/usr/local/cuda9.1/lib64:/usr/local/fsl/lib \
+    PATH=/opt/ants:/opt/ants/bin:/opt/freesurfer:/opt/itksnap/bin:/opt/mrtrix3/bin:/opt/niftyreg/bin/:/opt/workbench/bin_linux64:${PATH}:/usr/local/cuda9.1/bin:/usr/local/fsl/bin \
+    # FSL Options
+    FSLDIR=/usr/local/fsl \
+    FSLOUTPUTTYPE=NIFTI_GZ \
+    FSLMULTIFILEQUIT=TRUE \
+    FSLTCLSH=$FSLDIR/bin/fsltclsh \
+    FSLWISH=$FSLDIR/bin/fslwish
 RUN WHEEL=`ls /opt/diffparc-surf | grep whl` \
     && pip install /opt/diffparc-surf/${WHEEL} \
-    && rm -r /opt/diffparc-surf \
+    && rm -r /opt/diffparc-surf /root/.cache/pip/wheels \
     && apt-get purge -y -q curl g++ unzip wget \
     && apt-get --purge -y -qq autoremove
 ENTRYPOINT ["diffparc"]
