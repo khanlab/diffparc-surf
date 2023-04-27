@@ -1,11 +1,10 @@
 # Stage: python
 FROM nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04 as python
-WORKDIR /root
 ENV DEBIAN_FRONTEND="noninteractive" \
     PYENV_VER="v2.3.17" \
     PYTHON_VER="3.8.12" \
-    PYENV_ROOT="/root/.pyenv" \
-    PATH="/root/.pyenv/shims:/root/.pyenv/bin:/usr/local/cuda/bin:${PATH}" \ 
+    PYENV_ROOT="/opt/.pyenv" \
+    PATH="/opt/.pyenv/shims:/opt/.pyenv/bin:/usr/local/cuda/bin:${PATH}" \ 
     LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
@@ -27,7 +26,7 @@ RUN apt-get update -qq \
     xz-utils \
     zlib1g-dev \
     software-properties-common \
-    && git clone -b ${PYENV_VER} --depth=1 https://github.com/pyenv/pyenv.git .pyenv \
+    && git clone -b ${PYENV_VER} --depth=1 https://github.com/pyenv/pyenv.git /opt/.pyenv \
     && pyenv install -v ${PYTHON_VER} \
     && pyenv global ${PYTHON_VER} \
     && python -m pip install --upgrade pip
