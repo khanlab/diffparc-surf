@@ -50,6 +50,7 @@ RUN mkdir -p /opt \
     tcsh \
     g++ \
     unzip \
+    bc \
     # FSL dependencies
     libexpat1-dev \
     liblapack-dev \ 
@@ -78,7 +79,7 @@ FROM fnndsc/fsl:6.0.5.1-cuda9.1 as fsl
 RUN mv /usr/local/fsl/bin /usr/local/fsl/bin-all \
     && mkdir -p /usr/local/fsl/bin \
     && cd /usr/local/fsl/bin-all \
-    && cp -R bet* bedpost* topup applytopup eddy* fslorient probtrack* fslmerge remove_ext /usr/local/fsl/bin \
+    && cp -R bet* bedpost* topup applytopup eddy* fslorient probtrack* fslmerge remove_ext avscale /usr/local/fsl/bin \
     && cd /usr/local/fsl/bin \
     && rm -r eddy_cuda8.0 eddy_cuda10.2 /usr/local/fsl/bin-all 
 
