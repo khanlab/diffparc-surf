@@ -112,7 +112,7 @@ RUN wget https://sourceforge.net/projects/niftyreg/files/nifty_reg-${NIFTYREG_VE
     && mv /opt/NiftyReg-${NIFTYREG_VER}-Linux-x86_64-Release /opt/niftyreg \
     && cd /opt/niftyreg/bin \ 
     && ls . | grep -xv "reg_aladin" | xargs rm \
-    && rm /root/niftyreg.tar.gz
+    && rm /opt/niftyreg.tar.gz
 
 # Stage: synthstrip
 FROM freesurfer/synthstrip:1.3 as synthstrip
