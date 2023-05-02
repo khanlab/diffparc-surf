@@ -26,6 +26,7 @@ jobs:
           remove-dotnet: "true" # .net sdk
           remove-haskell: "true" # haskell
           remove-docker-images: "true" # rm existing cached images
+          overprovision-lvm: "true"
 
       - name: Check out the repo
         uses: actions/checkout@v2
