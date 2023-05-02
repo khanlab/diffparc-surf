@@ -107,12 +107,12 @@ RUN git clone --depth 1 https://github.com/MRtrix3/mrtrix3.git /opt/mrtrix3 \
 # Stage: niftyreg
 FROM builder as niftyreg
 ARG NIFTYREG_VER=1.3.9
-RUN wget https://sourceforge.net/projects/niftyreg/files/nifty_reg-${NIFTYREG_VER}/NiftyReg-${NIFTYREG_VER}-Linux-x86_64-Release.tar.gz/download -O niftyreg.tar.gz \
-    && tar -xf niftyreg.tar.gz -C /opt \
+RUN wget https://sourceforge.net/projects/niftyreg/files/nifty_reg-${NIFTYREG_VER}/NiftyReg-${NIFTYREG_VER}-Linux-x86_64-Release.tar.gz/download -O /opt/niftyreg.tar.gz \
+    && tar -xf /opt/niftyreg.tar.gz -C /opt \
     && mv /opt/NiftyReg-${NIFTYREG_VER}-Linux-x86_64-Release /opt/niftyreg \
     && cd /opt/niftyreg/bin \ 
     && ls . | grep -xv "reg_aladin" | xargs rm \
-    && rm niftyreg.tar.gz
+    && rm /opt/niftyreg.tar.gz
 
 # Stage: synthstrip
 FROM freesurfer/synthstrip:1.3 as synthstrip
