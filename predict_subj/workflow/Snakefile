@@ -93,7 +93,7 @@ rule run_diffparc:
         t1='bids/sub-01/anat/sub-01_T1w.nii.gz',
         dwi='bids/sub-01/dwi',
         dd='bids/dataset_description.json',
-        diffparc_wf='diffparc-wf'
+        diffparc_wf=os.path.join(workflow.basedir,'..','..','diffparc')
     container: config['singularity']['diffparc_deps']
     output:
         directory('diffparc')
