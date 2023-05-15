@@ -7,7 +7,7 @@ age: 73
 sex: 'M'
 
 
-
+diffparc_container: '/path/to/diffparc_deps.sif'
 
 singularity:
   diffparc_deps: 'docker://khanlab/diffparc-deps:v0.1.0-fix'
