@@ -393,7 +393,7 @@ rule write_surf_volumes_mni_csv:
         "../scripts/write_surface_volume_metric.py"
 
 
-rule concat_subj_csv:
+rule concat_subj_dti_csv:
     input:
         csvs=expand(
             bids(
@@ -402,12 +402,13 @@ rule concat_subj_csv:
                 desc="{targets}",
                 label="{seed}",
                 seedspervertex="{seedspervertex}",
+                method="{method}",
                 suffix="{suffix}.csv",
-                **subj_wildcards
+                **subj_wildcards,
             ),
             zip,
             **subj_zip_list,
-            allow_missing=True
+            allow_missing=True,
         ),
         #loop over subjects and sessions 
     output:
@@ -415,10 +416,41 @@ rule concat_subj_csv:
             root=root,
             subject="group",
             datatype="tabular",
-            desc="{targets}",
             label="{seed}",
+            desc="{targets}",
             seedspervertex="{seedspervertex}",
+            method="{method}",
             suffix="{suffix}.csv",
+        ),
+    container:
+        config["singularity"]["diffparc"]
+    group:
+        "agg"
+    script:
+        "../scripts/concat_csv.py"
+
+
+rule concat_subj_dseg_dtimetrics_csv:
+    input:
+        csvs=expand(
+            bids(
+                root=root,
+                datatype="tabular",
+                method="{dseg_method}",
+                suffix="{metric}.csv",
+                **subj_wildcards,
+            ),
+            zip,
+            **subj_zip_list,
+            allow_missing=True,
+        ),
+    output:
+        csv=bids(
+            root=root,
+            subject="group",
+            datatype="tabular",
+            method="{dseg_method}",
+            suffix="{metric}.csv",
         ),
     container:
         config["singularity"]["diffparc"]
