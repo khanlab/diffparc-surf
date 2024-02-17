@@ -478,6 +478,72 @@ def get_subj_qc():
     return qc_snaps
 
 
+def get_group_tables():
+    csvs = []
+
+    for seed in config["select_seeds"]:
+        # dti measures (currently only mrtrix)
+        csvs.extend(
+            expand(
+                bids(
+                    root=root,
+                    subject="group",
+                    datatype="tabular",
+                    label="{seed}",
+                    desc="{targets}",
+                    seedspervertex="{seedspervertex}",
+                    method="{method}",
+                    suffix="{suffix}.csv",
+                ),
+                seed=seed,
+                targets=config["seeds"][seed]["targets"],
+                seedspervertex=config["seeds"][seed]["seeds_per_vertex"],
+                method=config["methods"],
+                suffix=list(
+                    set(config["surface_metrics"]).difference(
+                        {"bundleFA", "bundleMD", "surfvol", "surfvolmni"}
+                    )
+                ),
+            ),
+        )
+        # dseg dti measures
+        csvs.extend(
+            expand(
+                bids(
+                    root=root,
+                    subject="group",
+                    datatype="tabular",
+                    method="{dseg_method}",
+                    suffix="{metric}.csv",
+                ),
+                dseg_method=config["aux_dseg"].keys(),
+                metric=list(
+                    set(config["aux_metrics"]).difference({"vol", "volmni"}),
+                ),
+            ),
+        )
+        # surface-based (enclosed) volume metrics (not parcellated)
+        csvs.extend(
+            expand(
+                bids(
+                    root=root,
+                    subject="group",
+                    datatype="tabular",
+                    method="{method}",
+                    suffix="{suffix}.csv",
+                ),
+                method=config["methods"],
+                suffix=list(
+                    set(config["surface_metrics"]).intersection(
+                        {"surfvol", "surfvolmni"}
+                    )
+                ),
+            ),
+        )
+
+    return csvs
+
+
 rule all:
     input:
         get_subj_spec(),
@@ -488,6 +554,23 @@ rule all:
         get_subj_vbm(),
         get_subj_dti_vbm(),
     default_target: True
+
+
+rule group_csv:
+    input:
+        get_group_tables(),
+    output:
+        combined_csv=bids(
+            root=root,
+            subject="group",
+            datatype="tabular",
+            desc="combined",
+            suffix="metrics.csv",
+        ),
+    container:
+        config["singularity"]["diffparc"]
+    script:
+        "scripts/combine_group_csv.py"
 
 
 include: "rules/common.smk"

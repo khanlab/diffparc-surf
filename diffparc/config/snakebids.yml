@@ -24,7 +24,7 @@ targets_by_analysis_level:
   participant:
     - ''  # if '', then the first rule is run
   group:
-    - 'all_legacy_csv'
+    - 'group_csv'
 
 pybids_inputs:
   dwi:
